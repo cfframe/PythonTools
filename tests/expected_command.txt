@@ -1,0 +1,4 @@
+python python_file.py --a_boolean True --a_string Some_string --a_number 123
+a_boolean=True
+a_string=Some_string
+a_number=123

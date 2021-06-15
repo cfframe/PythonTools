@@ -1,0 +1,13 @@
+# Assume python>=3.7
+tqdm==4.60.0
+matplotlib~=3.4.2
+numpy~=1.20.3
+
+# jupyter
+jupyter==1.0.0
+jupyter-client==6.1.12
+jupyter-console==6.4.0
+jupyter-core==4.7.1
+jupyterlab-pygments==0.1.2
+jupyterlab-widgets==1.0.0
+

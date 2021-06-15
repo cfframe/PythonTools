@@ -22,39 +22,39 @@ class FileToolsTestCase(unittest.TestCase):
         """Fixtures used by tests."""
         self.Root = Path(__file__).parent
 
-    def test_ensure_empty_sub_directory__when_dirpath_is_none__returns_value_error(self):
+    def test_ensure_empty_directory__when_dirpath_is_none__returns_value_error(self):
         with self.subTest(self):
             with self.assertRaises(ValueError):
-                dummy = FileTools.ensure_empty_sub_directory(None)
+                dummy = FileTools.ensure_empty_directory(None)
 
-    def test_ensure_empty_sub_directory__when_dirpath_exists__returns_exists_message(self):
+    def test_ensure_empty_directory__when_dirpath_exists__returns_exists_message(self):
         root = self.Root
         sub = 'test_folder'
         dir_path = os.path.join(self.Root, sub)
         expected = 'Directory exists'
-        actual = FileTools.ensure_empty_sub_directory(dir_path)[:len(expected)]
+        actual = FileTools.ensure_empty_directory(dir_path)[:len(expected)]
 
         self.assertTrue(expected == actual)
 
-    def test_ensure_empty_sub_directory__when_path_not_exists__returns_create_message(self):
+    def test_ensure_empty_directory__when_path_not_exists__returns_create_message(self):
         root = self.Root
         sub = 'temp_test_folder'
         dir_path = os.path.join(self.Root, sub)
 
         expected = 'Creating directory'
-        actual = FileTools.ensure_empty_sub_directory(dir_path)
+        actual = FileTools.ensure_empty_directory(dir_path)
 
         self.assertTrue(expected == actual)
 
         # Clean up
         os.rmdir(dir_path)
 
-    def test_ensure_empty_sub_directory__when_subdir_not_exists__creates_directory(self):
+    def test_ensure_empty_directory__when_subdir_not_exists__creates_directory(self):
         root = self.Root
         sub = 'temp_test_folder'
         dir_path = os.path.join(root, sub)
 
-        FileTools.ensure_empty_sub_directory(dir_path)
+        FileTools.ensure_empty_directory(dir_path)
 
         self.assertTrue(Path(dir_path).exists())
 
@@ -62,10 +62,10 @@ class FileToolsTestCase(unittest.TestCase):
         if Path(dir_path).exists():
             Path(dir_path).rmdir()
             if Path(dir_path).exists():
-                fn = 'test_ensure_empty_sub_directory__when_subdir_not_exists__creates_directory'
+                fn = 'test_ensure_empty_directory__when_subdir_not_exists__creates_directory'
                 raise Exception('Unexpected error in {}'.format(fn))
 
-    def test_ensure_empty_sub_directory__when_subdir_not_empty__removes_content(self):
+    def test_ensure_empty_directory__when_subdir_not_empty__removes_content(self):
         root = self.Root
         sub = 'fred'
         test_file_name = 'TestFile.txt'
@@ -82,7 +82,7 @@ class FileToolsTestCase(unittest.TestCase):
         shutil.copy(src_file, target_file)
 
         # Main test: To ensure content deleted if non empty directory
-        FileTools.ensure_empty_sub_directory(dir_path)
+        FileTools.ensure_empty_directory(dir_path)
         expected = 0
         actual = len(os.listdir(dir_path))
 

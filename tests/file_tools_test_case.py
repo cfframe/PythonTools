@@ -95,17 +95,19 @@ class FileToolsTestCase(unittest.TestCase):
         root = self.Root
         sub = 'test_for_archive'
         test_file_name = 'TestFile.txt'
-        dir_path = os.path.join(root, sub)
+        base_path_of_final_archive_file = os.path.join(root, sub)
+        path_of_dir_to_archive = os.path.join(root, sub)
         src_file = os.path.join(root, test_file_name)
-        test_file = os.path.join(dir_path, test_file_name)
-        Path(dir_path).mkdir(parents=True, exist_ok=True)
+        test_file = os.path.join(base_path_of_final_archive_file, test_file_name)
+        Path(base_path_of_final_archive_file).mkdir(parents=True, exist_ok=True)
         shutil.copy(src_file, test_file)
         archive_format = 'zip'
 
         expected = datetime.datetime.now().strftime('%y%m%d_%H%M_') + sub + '.' + archive_format
 
-        actual = Path(FileTools.make_datetime_named_archive(base_name=dir_path, format=archive_format,
-                                                            root_dir=root, base_dir=sub)).name
+        actual = Path(FileTools.make_datetime_named_archive(base_name=base_path_of_final_archive_file,
+                                                            format=archive_format,
+                                                            dir_path_to_archive=path_of_dir_to_archive)).name
 
         self.assertTrue(actual == expected)
 

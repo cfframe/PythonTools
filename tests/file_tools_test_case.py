@@ -117,12 +117,13 @@ class FileToolsTestCase(unittest.TestCase):
         os.unlink(archive_path)
 
     def test_save_command_args_to_file__saves_expected_file(self):
-        script = 'python_file'
         args = {'a_boolean': True, 'a_string': 'Some_string', 'a_number': 123}
+
         actual_save_path = os.path.join(self.Root, 'actual_command.txt')
         expected_save_path = os.path.join(self.Root, 'expected_command.txt')
 
-        FileTools.save_command_args_to_file(script, args, actual_save_path)
+        # Note calls to sys.argv will show the test runner file in unittest, so can't verify the first line correctly.
+        FileTools.save_command_args_to_file(args, actual_save_path)
         actual_save_path = Path(actual_save_path)
 
         with self.subTest(self, testing_for="saved file exists"):

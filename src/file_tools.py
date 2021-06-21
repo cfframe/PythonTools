@@ -4,6 +4,7 @@ import datetime
 from pathlib import Path
 import os
 import shutil
+import sys
 
 
 class FileTools:
@@ -68,7 +69,7 @@ class FileTools:
         :param dir_path_to_archive: str, the path to the directory that is to be archived
         :returns: name of file
         """
-
+        print('Archiving files...')
         file_name = datetime.datetime.now().strftime('%y%m%d_%H%M_') + Path(base_name).name
         dir_path = Path(base_name).parent
         base_name = os.path.join(dir_path, file_name)
@@ -89,27 +90,25 @@ class FileTools:
         return result
 
     @staticmethod
-    def save_command_args_to_file(script: str, args: dict, save_path: str):
+    def save_command_args_to_file(args: dict, save_path: str):
         """Save arguments and their values to file. Expects args of type dict, so use vars(args) as input.
 
         Keyword arguments:
 
-        :param script: python script being run
         :param args: dict, full arguments list
         :param save_path: str, path to file
         """
-        if not script.endswith('.py'):
-            script += '.py'
-
-        command = 'python {}'.format(script)
-        parts = [command]
+        parts = ['python']
         lines = []
+        parts.append(os.path.basename(sys.argv[0]))
+        for item in sys.argv[1:]:
+            parts.append(item)
+
+        command_line = ' '.join(parts) + '\n'
 
         for k, v in args.items():
-            parts.append('--{} {}'.format(k, v))
-            lines.append('{}={}'.format(k, v))
+            lines.append('{}={}'.format(k, v or ''))
 
-        command_line = ' '.join(parts)
         lines.insert(0, command_line)
         content = '\n'.join(lines)
 

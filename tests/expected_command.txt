@@ -1,4 +1,5 @@
-python python_file.py --a_boolean True --a_string Some_string --a_number 123
+python _jb_unittest_runner.py
+
 a_boolean=True
 a_string=Some_string
 a_number=123

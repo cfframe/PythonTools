@@ -11,6 +11,17 @@ class FileTools:
     """Utilities for managing data from and to files"""
 
     @staticmethod
+    def chunks_generator(input_list: list, chunk_size: int) -> list:
+        """Yield chunks of supplied data by given size"""
+        remainder = len(input_list) - (int(len(input_list)/chunk_size) * chunk_size)
+
+        for i in range(0, int(len(input_list) / chunk_size)):
+            yield input_list[i * chunk_size: (i + 1) * chunk_size]
+        if remainder > 0:
+            i = int(len(input_list)/chunk_size)
+            yield input_list[i * chunk_size: i * chunk_size + remainder]
+
+    @staticmethod
     def ensure_empty_directory(dir_path: str) -> str:
         """If path does not exist, create it. If it does exist, empty it.
 
@@ -51,6 +62,22 @@ class FileTools:
 
         print('{}: {}'.format(result, dir_path))
         return result
+
+    @staticmethod
+    def lines_list_from_file(file_path: str) -> list:
+        """Retrieve lines of text from file, return list
+
+        Keyword arguments:
+        file_path -- full path to file
+        """
+
+        with open(file_path, 'r') as infile:
+            line_list = infile.readlines()
+
+        # Strip newline chars
+        line_list = [line.strip() for line in line_list]
+
+        return line_list
 
     @staticmethod
     def make_datetime_named_archive(base_name: str, format: str, dir_path_to_archive: str):

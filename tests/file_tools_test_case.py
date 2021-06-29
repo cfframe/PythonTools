@@ -22,6 +22,22 @@ class FileToolsTestCase(unittest.TestCase):
         """Fixtures used by tests."""
         self.Root = Path(__file__).parent
 
+        self.TestFilePath = os.path.join(self.Root, 'TestFile.txt')
+        # self.TestList = ['124.115.0.158', '119.230.103.254', '208.70.189.142']
+        self.TestList = ['fred', 'woz', 'ere']
+
+    def test_chunks_generator__yields_expected_lists(self):
+        chunk_size = 2
+        chunks = FileTools.chunks_generator(self.TestList, chunk_size)
+
+        actual = next(chunks)
+        expected = self.TestList[0:2]
+        self.assertEqual(actual, expected)
+
+        actual = next(chunks)
+        expected = self.TestList[2:3]
+        self.assertEqual(actual, expected)
+
     def test_ensure_empty_directory__when_dirpath_is_none__returns_value_error(self):
         with self.subTest(self):
             with self.assertRaises(ValueError):
@@ -90,6 +106,13 @@ class FileToolsTestCase(unittest.TestCase):
 
         # Clean up
         shutil.rmtree(dir_path)
+
+    def test_lines_list_from_file__returns_list(self):
+        path = self.TestFilePath
+
+        expected = self.TestList
+        actual = FileTools.lines_list_from_file(path)
+        self.assertListEqual(expected, actual)
 
     def test_make_datetime_named_archive__returns_file_path_in_desired_format(self):
         root = self.Root

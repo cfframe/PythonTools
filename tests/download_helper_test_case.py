@@ -46,9 +46,9 @@ class DownloadHelperTestCase(unittest.TestCase):
         with self.subTest(self):
             self.assertTrue(DownloadHelper.can_extract_to_extraction_dir(unzip_dir=test_path))
             self.assertTrue(DownloadHelper.can_extract_to_extraction_dir(unzip_dir=test_path,
-                                                                      replace_content='n'))
+                                                                         replace_content='n'))
             self.assertTrue(DownloadHelper.can_extract_to_extraction_dir(unzip_dir=test_path,
-                                                                      replace_content='y'))
+                                                                         replace_content='y'))
 
     def test_can_extract_to_extraction_dir__when_empty_target_exists__uses_replace_destination_dir(self):
         test_path = self.TestDestinationFolder
@@ -57,9 +57,9 @@ class DownloadHelperTestCase(unittest.TestCase):
         with self.subTest(self):
             # Start with empty test dir
             self.assertTrue(DownloadHelper.can_extract_to_extraction_dir(unzip_dir=test_path,
-                                                                      replace_content='n'))
+                                                                         replace_content='n'))
             self.assertTrue(DownloadHelper.can_extract_to_extraction_dir(unzip_dir=test_path,
-                                                                      replace_content='y'))
+                                                                         replace_content='y'))
 
     def test_can_extract_to_extraction_dir__when_non_empty_target_exists__uses_replace_destination_dir(self):
         test_path = self.TestDestinationFolder
@@ -70,9 +70,9 @@ class DownloadHelperTestCase(unittest.TestCase):
         with self.subTest(self):
             # Start with empty test dir
             self.assertFalse(DownloadHelper.can_extract_to_extraction_dir(unzip_dir=test_path,
-                                                                       replace_content='n'))
+                                                                          replace_content='n'))
             self.assertTrue(DownloadHelper.can_extract_to_extraction_dir(unzip_dir=test_path,
-                                                                      replace_content='y'))
+                                                                         replace_content='y'))
 
         # Clean up - remove test file
         os.remove(self.TestDestinationFile)

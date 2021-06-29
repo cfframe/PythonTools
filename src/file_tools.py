@@ -12,7 +12,12 @@ class FileTools:
 
     @staticmethod
     def chunks_generator(input_list: list, chunk_size: int) -> list:
-        """Yield chunks of supplied data by given size"""
+        """Yield chunks of supplied data by given size
+
+        :param input_list: the list from which chunks are to be yielded
+        :param chunk_size: number of items in each chunk
+        :returns: list of length chunk_size
+        """
         remainder = len(input_list) - (int(len(input_list)/chunk_size) * chunk_size)
 
         for i in range(0, int(len(input_list) / chunk_size)):
@@ -22,11 +27,34 @@ class FileTools:
             yield input_list[i * chunk_size: i * chunk_size + remainder]
 
     @staticmethod
+    def create_dirs_from_file_header(file_path: str, separator: str, target_root: str) -> list():
+        """Generate folder names from the first line of a file
+
+        Assumes the first column is a list of files/items and the remaining column headers require associated folders
+
+        Keyword arguments:
+        :param file_path: full path to file
+        :param separator: string separator for folder names
+        :param target_root: root where new folders to be created
+        :returns list of folder names
+        """
+        with open(file_path, 'r') as infile:
+            header_line = (infile.readline()).strip()
+
+        headers = header_line.split(separator)[1:]
+
+        for header in headers:
+            os.mkdir(os.path.join(target_root, header))
+
+        return headers
+
+    @staticmethod
     def ensure_empty_directory(dir_path: str) -> str:
         """If path does not exist, create it. If it does exist, empty it.
 
         Keyword arguments:
         :param dir_path: root directory path
+        :returns: descriptor of result
         """
         result = 'Invalid'
 
@@ -68,7 +96,8 @@ class FileTools:
         """Retrieve lines of text from file, return list
 
         Keyword arguments:
-        file_path -- full path to file
+        :param file_path: full path to file
+        :returns: list of text lines
         """
 
         with open(file_path, 'r') as infile:
@@ -142,4 +171,3 @@ class FileTools:
         with open(save_path, 'w', encoding='utf-8') as outfile:
             outfile.write(content)
             print('Output saved to {}.'.format(save_path))
-

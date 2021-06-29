@@ -25,6 +25,14 @@ class FileToolsTestCase(unittest.TestCase):
         self.TestFilePath = os.path.join(self.Root, 'TestFile.txt')
         # self.TestList = ['124.115.0.158', '119.230.103.254', '208.70.189.142']
         self.TestList = ['fred', 'woz', 'ere']
+        self.ClassedFileListFile = os.path.join(self.Root, 'ClassedFileList.csv')
+        self.FolderList = ['Class 1', 'Class 2', 'Class 3', 'Class 4']
+        self.NewFolderRoot = os.path.join(self.Root, 'test_for_new_folders')
+
+        FileTools.ensure_empty_directory(self.NewFolderRoot)
+
+    def tearDown(self) -> None:
+        FileTools.ensure_empty_directory(self.NewFolderRoot)
 
     def test_chunks_generator__yields_expected_lists(self):
         chunk_size = 2
@@ -38,6 +46,23 @@ class FileToolsTestCase(unittest.TestCase):
         expected = self.TestList[2:3]
         self.assertEqual(actual, expected)
 
+    def test_create_dirs_from_file_header__returns_folder_list(self):
+        actual = FileTools.create_dirs_from_file_header(self.ClassedFileListFile, ',', self.NewFolderRoot)
+        expected = self.FolderList
+
+        self.assertEqual(actual, expected)
+
+    def test_create_dirs_from_file_header__creates_dirs(self):
+        dir_names = FileTools.create_dirs_from_file_header(self.ClassedFileListFile, ',', self.NewFolderRoot)
+
+        with self.subTest(self, testing_for="first folder"):
+            dir_path = Path(os.path.join(self.NewFolderRoot, dir_names[0]))
+            self.assertTrue(Path.exists(dir_path))
+
+        with self.subTest(self, testing_for="last folder"):
+            dir_path = Path(os.path.join(self.NewFolderRoot, dir_names[-1]))
+            self.assertTrue(Path.exists(dir_path))
+        
     def test_ensure_empty_directory__when_dirpath_is_none__returns_value_error(self):
         with self.subTest(self):
             with self.assertRaises(ValueError):

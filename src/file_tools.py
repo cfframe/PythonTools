@@ -1,6 +1,7 @@
 # file_tools.py
 
 import datetime
+import pandas
 from pathlib import Path
 import os
 import shutil
@@ -47,6 +48,39 @@ class FileTools:
             os.mkdir(os.path.join(target_root, header))
 
         return headers
+
+    @staticmethod
+    def copy_files_to_class_dirs(info_file_path: str, separator: str, src_root: str, target_root: str,
+                                 extension: str = ''):
+        """Copy files from source dir to class dirs
+
+        Keyword arguments:
+        :param info_file_path: full path to file with class data of source files; assume this structure:
+            line 1: headers
+            column 1: file names
+        :param separator: string separator for class names
+        :param src_root: root for source files
+        :param target_root: root for class dirs
+        :param extension: if extension given, then suffix to file names
+        :returns list of folder names
+        """
+
+        df = pandas.read_csv(info_file_path, index_col=0)
+
+        FileTools.create_dirs_from_file_header(info_file_path, separator, target_root)
+
+        for col in df.columns:
+            target_dir = os.path.join(target_root, col)
+            count = 0
+            for filename in df[df[col] == 1].index:
+                src_file = os.path.join(src_root, '.'.join([filename, extension]))
+                target_file = os.path.join(target_dir, '.'.join([filename, extension]))
+
+                shutil.copyfile(src_file, target_file)
+                count += 1
+            print(f'{count} files copied to {target_dir}')
+
+        return df
 
     @staticmethod
     def ensure_empty_directory(dir_path: str) -> str:

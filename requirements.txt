@@ -2,6 +2,9 @@
 tqdm==4.60.0
 matplotlib~=3.4.2
 numpy~=1.20.3
+pandas~=1.2.5
+scikit-learn~=0.22
+scikit-image~=0.18.2
 
 # jupyter
 jupyter==1.0.0

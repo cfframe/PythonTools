@@ -27,6 +27,7 @@ class FileToolsTestCase(unittest.TestCase):
         self.TestList = ['fred', 'woz', 'ere']
         self.ClassedFileListFile = os.path.join(self.Root, 'ClassedFileList.csv')
         self.FolderList = ['Class 1', 'Class 2', 'Class 3', 'Class 4']
+        self.SourceFilesRoot = os.path.join(self.Root, 'source_images')
         self.NewFolderRoot = os.path.join(self.Root, 'test_for_new_folders')
 
         FileTools.ensure_empty_directory(self.NewFolderRoot)
@@ -45,6 +46,25 @@ class FileToolsTestCase(unittest.TestCase):
         actual = next(chunks)
         expected = self.TestList[2:3]
         self.assertEqual(actual, expected)
+
+    def test_copy_files_to_class_dirs__files_copied(self):
+        info_file_path = self.ClassedFileListFile
+        separator = ','
+        src_root = self.SourceFilesRoot
+        targ_root = self.NewFolderRoot
+
+        FileTools.copy_files_to_class_dirs(info_file_path=info_file_path, separator=separator,
+                                           src_root=src_root, target_root=targ_root, extension='jpg')
+
+        with self.subTest(self, testing_for="image1.jpg copied to dir Class 2"):
+
+            file_path = Path(os.path.join(self.NewFolderRoot, 'Class 2', 'image1.jpg'))
+            self.assertTrue(Path.exists(file_path))
+
+        with self.subTest(self, testing_for="image4.jpg copied to dir Class 1"):
+
+            file_path = Path(os.path.join(self.NewFolderRoot, 'Class 2', 'image1.jpg'))
+            self.assertTrue(Path.exists(file_path))
 
     def test_create_dirs_from_file_header__returns_folder_list(self):
         actual = FileTools.create_dirs_from_file_header(self.ClassedFileListFile, ',', self.NewFolderRoot)

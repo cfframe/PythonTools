@@ -1,10 +1,13 @@
 # file_tools.py
 
 import datetime
+import numpy as np
 import pandas
 from pathlib import Path
+from PIL import Image
 import os
 import shutil
+from skimage.transform import resize
 import sys
 
 
@@ -205,3 +208,30 @@ class FileTools:
         with open(save_path, 'w', encoding='utf-8') as outfile:
             outfile.write(content)
             print('Output saved to {}.'.format(save_path))
+
+    @staticmethod
+    def save_numpy_image_array_of_images_dir(src_dir: str, target_path: str, new_shape: tuple, suffix: str):
+        image_files = [os.path.join(src_dir, f) for f in os.listdir(src_dir)
+                       if os.path.isfile(os.path.join(src_dir, f))
+                       and Path(os.path.join(src_dir, f)).suffix == suffix]
+
+        processed_images = []
+
+        try:
+            for img in [np.array(Image.open(image_path)) for image_path in image_files]:
+                processed_images.append(
+                    np.asarray(
+                        resize(img, new_shape, preserve_range=True, anti_aliasing=False),
+                        dtype='int'
+                    )
+                )
+        except Exception as err:
+            error_message = \
+                "Unexpected error in FileTools.save_numpy_image_array_of_images_dir\n"\
+                + str(err.args)
+            raise Exception(error_message)
+
+        np.save(target_path + '.npy', processed_images)
+
+        return processed_images
+

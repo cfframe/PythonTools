@@ -2,6 +2,7 @@
 
 import datetime
 import filecmp
+import numpy as np
 import os
 import shutil
 import unittest
@@ -29,6 +30,7 @@ class FileToolsTestCase(unittest.TestCase):
         self.FolderList = ['Class 1', 'Class 2', 'Class 3', 'Class 4']
         self.SourceFilesRoot = os.path.join(self.Root, 'source_images')
         self.NewFolderRoot = os.path.join(self.Root, 'test_for_new_folders')
+        self.ImagesFolder = os.path.join(self.Root, 'source_images')
 
         FileTools.ensure_empty_directory(self.NewFolderRoot)
 
@@ -202,6 +204,19 @@ class FileToolsTestCase(unittest.TestCase):
 
         # Clean up
         os.unlink(actual_save_path)
+
+    def test_save_numpy_image_array_of_images_dir__saves_file(self):
+        images_file_path = os.path.join(self.NewFolderRoot, 'images')
+
+        FileTools.save_numpy_image_array_of_images_dir(self.ImagesFolder, images_file_path, (12, 12), '.jpg')
+
+        final_images_file_path = images_file_path + '.npy'
+        with self.subTest(self, testing_for="image file saved"):
+            self.assertTrue(Path.exists(Path(final_images_file_path)))
+
+        with self.subTest(self, testing_for="saved file has images"):
+            images = np.load(final_images_file_path)
+            print(images.shape)
 
 
 if __name__ == '__main__':

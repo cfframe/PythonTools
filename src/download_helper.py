@@ -229,3 +229,5 @@ class DownloadHelper:
             extraction_dir = os.path.join(temp_extraction_dir, initial_extraction_dir_name)
             print(f'Moving dir "{extraction_dir}" to "{final_extraction_dir}"')
             os.rename(extraction_dir, final_extraction_dir)
+
+        return final_extraction_dir

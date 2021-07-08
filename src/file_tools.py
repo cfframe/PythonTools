@@ -231,7 +231,7 @@ class FileTools:
                 + str(err.args)
             raise Exception(error_message)
 
-        np.save(target_path + '.npy', processed_images)
+        final_path = target_path + '.npy'
+        np.save(final_path, processed_images)
 
-        return processed_images
-
+        return final_path

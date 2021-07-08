@@ -26,6 +26,7 @@ python get_dataset.py -d data -rd -i -s https://isic-challenge-data.s3.amazonaws
 
 import argparse
 from src.download_helper import DownloadHelper
+from src.file_tools import FileTools
 
 DOWNLOAD_URL = 'https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_LesionGroupings.csv'
 
@@ -49,4 +50,7 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    DownloadHelper.download_dataset(**args.__dict__)
+    extraction_dir = DownloadHelper.download_dataset(**args.__dict__)
+    final_file_path = FileTools.save_numpy_image_array_of_images_dir(
+        src_dir=extraction_dir, target_path=extraction_dir, new_shape=(64, 64), suffix='.jpg')
+    print(f'Saved at {final_file_path}')

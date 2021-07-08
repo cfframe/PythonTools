@@ -8,7 +8,9 @@ from pathlib import Path
 # Photo by Giulio Magnifico on Unsplash
 # https://unsplash.com/@giuliomagnifico?utm_source=medium&utm_medium=referral
 
-image_path = os.path.join(Path(__file__).parent.parent, 'images/dewdrop.jpg')
+# image_name = 'dewdrop.jpg'
+image_name = '_sample.png'
+image_path = os.path.join(Path(__file__).parent.parent, f'images/{image_name}')
 img = Image.open(image_path)
 img.load()
 img_array = np.asarray(img, dtype='int32')
@@ -16,16 +18,44 @@ img_array = np.asarray(img, dtype='int32')
 print(f'img_array.shape: {img_array.shape}')
 
 #  Show effects of minimising and maximising rgb
+colours = {0: 'red', 1: 'green', 2: 'blue'}
+
+
+def save_and_show_plot(save_as):
+    image_path = os.path.join(Path(__file__).parent.parent, f'results/{save_as}.png')
+    plt.savefig(image_path)
+    plt.show()
+
+
 test1 = True
 if test1:
+
+    title = 'Original image'
+    plt.title(title)
+    plt.imshow(img_array)
+    save_and_show_plot(save_as=title)
+    # plt.show()
+
     for channel in range(3):
-        temp_image = np.copy(img_array)
         for colour_factor in range(2):
+            temp_image = np.copy(img_array)
+            title = 'Set {} to {}'.format(colours[channel], colour_factor)
             brightness = 255 * colour_factor
             print(f'channel: {channel};  brightness: {brightness}')
             temp_image[:, :, channel] = brightness
+            plt.title(title)
             plt.imshow(temp_image)
-            plt.show()
+            save_and_show_plot(save_as=title)
+
+    for channel in range(3):
+        title = 'Show {} only'.format(colours[channel])
+        temp_image = np.copy(img_array)
+        for other_channel in range(3):
+            if other_channel != channel:
+                temp_image[:, :, other_channel] = 0
+        plt.title(title)
+        plt.imshow(temp_image)
+        save_and_show_plot(save_as=title)
 
 # Downsampling - from https://scikit-image.org/docs/dev/auto_examples/transform/plot_rescale.html
 # - monochrome
@@ -35,7 +65,7 @@ from skimage import data, color
 from skimage.transform import rescale, resize, downscale_local_mean
 import math
 
-test2 = True
+test2 = False
 if test2:
 
     image = color.rgb2gray(np.copy(img_array))
@@ -65,7 +95,7 @@ if test2:
     plt.show()
 
 # Downsampling - as above, but reworked for colour
-test3 = True
+test3 = False
 if test3:
 
     image = np.copy(img_array)

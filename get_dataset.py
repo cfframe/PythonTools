@@ -48,9 +48,14 @@ def parse_args():
     return args
 
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
     extraction_dir = DownloadHelper.download_dataset(**args.__dict__)
     final_file_path = FileTools.save_numpy_image_array_of_images_dir(
         src_dir=extraction_dir, target_path=extraction_dir, new_shape=(64, 64), suffix='.jpg')
-    print(f'Saved at {final_file_path}')
+
+    print(f'Saved images file at {final_file_path}')
+
+
+if __name__ == "__main__":
+    main()

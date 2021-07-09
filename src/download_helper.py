@@ -160,7 +160,8 @@ class DownloadHelper:
         return extraction_dir_path
 
     @staticmethod
-    def download_dataset(data_dir: str, replace_download: str, replace_unzip_content: str, src_url: str, is_isic: bool):
+    def download_dataset(data_dir: str, replace_download: str, replace_unzip_content: str, src_url: str, is_isic: bool,
+                         working_dir: str = ''):
         """Download file from give URL to given directory with chosen name
 
         Keyword arguments:
@@ -170,9 +171,11 @@ class DownloadHelper:
         :param replace_unzip_content: flag, whether to replace existing extraction content
         :param src_url: Source URL
         :param is_isic: flag, whether to be processed as an ISIC file that follows ISIC conventions
+        :param working_dir: (optional) working directory for extraction of download
         """
-        print('Parameters: \ndata_dir: {}\nreplace_download: {}\nreplace_unzip_content: {}\nsrc_url: {}\nis_isic: {}'.
-              format(data_dir, replace_download, replace_unzip_content, src_url, is_isic))
+        print('Parameters: \ndata_dir: {}\nreplace_download: {}\nreplace_unzip_content: {}\nsrc_url: {}\nis_isic: {}\n'
+              'working_dir: {}'.
+              format(data_dir, replace_download, replace_unzip_content, src_url, is_isic, working_dir))
 
         src_path = Path(src_url)
         target_filename = src_path.name
@@ -183,9 +186,10 @@ class DownloadHelper:
         download_dir = os.path.join(data_dir, 'downloads')
 
         download_file = os.path.join(download_dir, target_filename)
+        working_dir = data_dir if working_dir == '' else os.path.join(data_dir, working_dir)
         final_extraction_dir = \
-            DownloadHelper.get_extraction_isic_dir_path(data_dir=data_dir, filename=target_filename) if is_isic \
-            else DownloadHelper.get_extraction_dir_path(data_dir=data_dir, filename=target_filename)
+            DownloadHelper.get_extraction_isic_dir_path(data_dir=working_dir, filename=target_filename) if is_isic \
+            else DownloadHelper.get_extraction_dir_path(data_dir=working_dir, filename=target_filename)
 
         # Remove temp dir if exists, will recreate later if needed
         temp_extraction_dir = os.path.join(data_dir, 'temp')
@@ -228,6 +232,7 @@ class DownloadHelper:
                 shutil.rmtree(final_extraction_dir)
             extraction_dir = os.path.join(temp_extraction_dir, initial_extraction_dir_name)
             print(f'Moving dir "{extraction_dir}" to "{final_extraction_dir}"')
+            Path(Path(final_extraction_dir).parent).mkdir(parents=True, exist_ok=True)
             os.rename(extraction_dir, final_extraction_dir)
 
-        return final_extraction_dir
+        return final_extraction_dir, working_dir

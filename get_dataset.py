@@ -14,12 +14,12 @@ Datasets for ISIC:
 python get_dataset.py --help
 python get_dataset.py -d data
 python get_dataset.py -d data -rd -rt
-python get_dataset.py -d data -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_Input.zip
-python get_dataset.py -d data -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_LesionGroupings.csv
-python get_dataset.py -d data -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_GroundTruth.zip
-python get_dataset.py -d data -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Validation_Input.zip
-python get_dataset.py -d data -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Validation_GroundTruth.zip
-python get_dataset.py -d data -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Test_Input.zip
+python get_dataset.py -d data -wd isic2018 -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_Input.zip
+python get_dataset.py -d data -wd isic2018 -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_LesionGroupings.csv
+python get_dataset.py -d data -wd isic2018 -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_GroundTruth.zip
+python get_dataset.py -d data -wd isic2018 -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Validation_Input.zip
+python get_dataset.py -d data -wd isic2018 -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Validation_GroundTruth.zip
+python get_dataset.py -d data -wd isic2018 -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Test_Input.zip
 python get_dataset.py -d data -s http://bergerlab-downloads.csail.mit.edu/spatial-vae/mnist_rotated.tar.gz
 python get_dataset.py -d data -rd -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_LesionGroupings.csv
 """
@@ -42,6 +42,8 @@ def parse_args():
                         help="Source URL for download")
     parser.add_argument('--is_isic', '-i', action='store_true',
                         help='Indicate download is an ISIC dataset following ISIC conventions')
+    parser.add_argument('--working_dir', '-wd', type=str, default='',
+                        help='Target directory for extraction etc (optional)')
 
     args = parser.parse_args()
 
@@ -50,7 +52,12 @@ def parse_args():
 
 def main():
     args = parse_args()
-    extraction_dir = DownloadHelper.download_dataset(**args.__dict__)
+
+    extraction_dir, working_dir = DownloadHelper.download_dataset(
+        data_dir=args.data_dir,
+        replace_download=args.replace_download, replace_unzip_content=args.replace_unzip_content,
+        src_url=args.src_url, is_isic=args.is_isic, working_dir=args.working_dir)
+
     final_file_path = FileTools.save_numpy_image_array_of_images_dir(
         src_dir=extraction_dir, target_path=extraction_dir, new_shape=(64, 64), suffix='.jpg')
 

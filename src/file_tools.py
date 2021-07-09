@@ -211,27 +211,37 @@ class FileTools:
 
     @staticmethod
     def save_numpy_image_array_of_images_dir(src_dir: str, target_path: str, new_shape: tuple, suffix: str):
-        image_files = [os.path.join(src_dir, f) for f in os.listdir(src_dir)
-                       if os.path.isfile(os.path.join(src_dir, f))
-                       and Path(os.path.join(src_dir, f)).suffix == suffix]
+        if src_dir == '':
+            result = f'No source directory supplied for images, so no npy file created.'
+        elif not Path(src_dir).is_dir():
+            result = f'"{src_dir}" is not a directory, so no npy file created.'
+        else:
+            image_files = [os.path.join(src_dir, f) for f in os.listdir(src_dir)
+                           if os.path.isfile(os.path.join(src_dir, f))
+                           and Path(os.path.join(src_dir, f)).suffix == suffix]
 
-        processed_images = []
+            if len(image_files) == 0:
+                result = f'No {suffix} files at {src_dir} so no npy file created.'
+            else:
+                processed_images = []
 
-        try:
-            for img in [np.array(Image.open(image_path)) for image_path in image_files]:
-                processed_images.append(
-                    np.asarray(
-                        resize(img, new_shape, preserve_range=True, anti_aliasing=False),
-                        dtype='int'
-                    )
-                )
-        except Exception as err:
-            error_message = \
-                "Unexpected error in FileTools.save_numpy_image_array_of_images_dir\n"\
-                + str(err.args)
-            raise Exception(error_message)
+                try:
+                    for img in [np.array(Image.open(image_path)) for image_path in image_files]:
+                        processed_images.append(
+                            np.asarray(
+                                resize(img, new_shape, preserve_range=True, anti_aliasing=False),
+                                dtype='int'
+                            )
+                        )
+                except Exception as err:
+                    error_message = \
+                        "Unexpected error in FileTools.save_numpy_image_array_of_images_dir\n"\
+                        + str(err.args)
+                    raise Exception(error_message)
 
-        final_path = target_path + '.npy'
-        np.save(final_path, processed_images)
+                final_path = target_path + '.npy'
+                np.save(final_path, processed_images)
 
-        return final_path
+                result = f'Npy file saved at {final_path}'
+
+        return result

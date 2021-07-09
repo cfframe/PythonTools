@@ -82,7 +82,7 @@ class DownloadHelper:
 
         is_extraction_pre_check_ok = \
             True if extraction_dir == '' or can_extract_to_extraction_dir \
-                else False
+            else False
 
         result = is_extraction_pre_check_ok and DownloadHelper.can_download(target_path, replace_download)
 
@@ -179,9 +179,9 @@ class DownloadHelper:
 
         src_path = Path(src_url)
         target_filename = src_path.name
-        archive_type = src_path.suffix
+        file_type = src_path.suffix
         if target_filename.endswith('.tar.gz'):
-            archive_type = '.tar.gz'
+            file_type = '.tar.gz'
 
         download_dir = os.path.join(data_dir, 'downloads')
 
@@ -210,16 +210,16 @@ class DownloadHelper:
         initial_extraction_dir_name = ''
         if can_extract_to_extraction_dir:
             Path(temp_extraction_dir).mkdir(parents=True, exist_ok=True)
-            if archive_type == '.tar.gz':
+            if file_type == '.tar.gz':
                 tar_ref = tarfile.open(download_file, 'r|gz')
                 print(f'Extracting {download_file} to {temp_extraction_dir}')
                 tar_ref.extractall(path=temp_extraction_dir)
                 # Assume that everything is inside a single top level folder.
                 initial_extraction_dir_name = Path(tar_ref.members[0].name).parts[0]
                 tar_ref.close()
-            elif archive_type == '.gz':
+            elif file_type == '.gz':
                 pass
-            elif archive_type == '.tar' or archive_type == '.zip':
+            elif file_type == '.tar' or file_type == '.zip':
                 with zipfile.ZipFile(download_file, 'r') as zip_ref:
                     print(f'Extracting {zip_ref.filename} to {temp_extraction_dir}')
                     zip_ref.extractall(path=temp_extraction_dir)

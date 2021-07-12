@@ -205,10 +205,23 @@ class FileToolsTestCase(unittest.TestCase):
         # Clean up
         os.unlink(actual_save_path)
 
-    def test_save_numpy_image_array_of_images_dir__saves_file(self):
+    def test_create_numpy_archive_from_images_dir__saves_file(self):
         images_file_path = os.path.join(self.NewFolderRoot, 'images')
 
-        FileTools.save_numpy_image_array_of_images_dir(self.ImagesFolder, images_file_path, (12, 12), '.jpg')
+        FileTools.create_numpy_archive_from_images_dir(self.ImagesFolder, images_file_path, (12, 12), '.jpg')
+
+        final_images_file_path = images_file_path + '.npy'
+        with self.subTest(self, testing_for="image file saved"):
+            self.assertTrue(Path.exists(Path(final_images_file_path)))
+
+        with self.subTest(self, testing_for="saved file has images"):
+            images = np.load(final_images_file_path)
+            print(images.shape)
+
+    def test_create_numpy_archive_from_images_dir__when_using_defaults__saves_file(self):
+        images_file_path = os.path.join(self.NewFolderRoot, 'images')
+
+        FileTools.create_numpy_archive_from_images_dir(self.ImagesFolder, images_file_path)
 
         final_images_file_path = images_file_path + '.npy'
         with self.subTest(self, testing_for="image file saved"):

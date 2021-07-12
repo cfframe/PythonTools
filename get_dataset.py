@@ -58,7 +58,7 @@ def main():
         replace_download=args.replace_download, replace_unzip_content=args.replace_unzip_content,
         src_url=args.src_url, is_isic=args.is_isic, working_dir=args.working_dir)
 
-    result = FileTools.save_numpy_image_array_of_images_dir(
+    result = FileTools.create_numpy_archive_from_images_dir(
         src_dir=extraction_dir, target_path=extraction_dir, new_shape=(64, 64), suffix='.jpg')
 
     print(result)

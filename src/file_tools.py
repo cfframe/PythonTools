@@ -225,6 +225,11 @@ class FileTools:
         :param new_shape: optional, end shape of resized image arrays
         :param suffix: suffix of images to be processed, including preceding full-stop (default '.jpg')
         """
+        # Catch items where None passed in
+        if new_shape is None:
+            new_shape = 0
+        if suffix is None:
+            suffix = '.jpg'
 
         if src_dir == '':
             result = f'No source directory supplied for images, so no npy file created.'
@@ -261,3 +266,14 @@ class FileTools:
                 result = f'Npy file saved at {final_path}'
 
         return result
+
+    @staticmethod
+    def path_of_first_file_of_type(directory: str, extension: str = '.jpg'):
+        found_path = ''
+        for __, __, files in os.walk(directory, topdown=False):
+            for file in files:
+                if Path(file).suffix == extension:
+                    found_path = os.path.join(directory, file)
+                    break
+
+        return found_path

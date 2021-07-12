@@ -28,7 +28,7 @@ class FileToolsTestCase(unittest.TestCase):
         self.TestList = ['fred', 'woz', 'ere']
         self.ClassedFileListFile = os.path.join(self.Root, 'ClassedFileList.csv')
         self.FolderList = ['Class 1', 'Class 2', 'Class 3', 'Class 4']
-        self.SourceFilesRoot = os.path.join(self.Root, 'source_images')
+        self.SourceImagesDir = os.path.join(self.Root, 'source_images')
         self.NewFolderRoot = os.path.join(self.Root, 'test_for_new_folders')
         self.ImagesFolder = os.path.join(self.Root, 'source_images')
 
@@ -52,7 +52,7 @@ class FileToolsTestCase(unittest.TestCase):
     def test_copy_files_to_class_dirs__files_copied(self):
         info_file_path = self.ClassedFileListFile
         separator = ','
-        src_root = self.SourceFilesRoot
+        src_root = self.SourceImagesDir
         targ_root = self.NewFolderRoot
 
         FileTools.copy_files_to_class_dirs(info_file_path=info_file_path, separator=separator,
@@ -230,6 +230,22 @@ class FileToolsTestCase(unittest.TestCase):
         with self.subTest(self, testing_for="saved file has images"):
             images = np.load(final_images_file_path)
             print(images.shape)
+
+    def test_path_of_first_file_of_type__when_found__returns_path(self):
+
+        with self.subTest(self, testing_for="file exists"):
+            extension = '.jpg'
+            expected = os.path.join(self.SourceImagesDir, 'image1.jpg')
+            actual = FileTools.path_of_first_file_of_type(directory=self.SourceImagesDir, extension=extension)
+
+            self.assertTrue(actual.lower() == expected.lower())
+
+        with self.subTest(self, testing_for="no file with extension exists"):
+            extension = '.xxx'
+            expected = ''
+            actual = FileTools.path_of_first_file_of_type(directory=self.SourceImagesDir, extension=extension)
+
+            self.assertTrue(actual.lower() == expected.lower())
 
 
 if __name__ == '__main__':

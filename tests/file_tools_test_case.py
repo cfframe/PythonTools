@@ -31,11 +31,15 @@ class FileToolsTestCase(unittest.TestCase):
         self.SourceImagesDir = os.path.join(self.Root, 'source_files')
         self.NewFolderRoot = os.path.join(self.Root, 'test_for_new_folders')
         self.ImagesFolder = os.path.join(self.Root, 'source_files')
-
+        self.UnclassedParentFolder = os.path.join(self.Root, 'unclassed_parent')
+        self.TrainingRawFolder = os.path.join(self.Root, 'training_raw')
         FileTools.ensure_empty_directory(self.NewFolderRoot)
+        FileTools.ensure_empty_directory(self.TrainingRawFolder)
+        shutil.copytree(self.SourceImagesDir, self.TrainingRawFolder, dirs_exist_ok=True)
 
     def tearDown(self) -> None:
         FileTools.ensure_empty_directory(self.NewFolderRoot)
+        FileTools.ensure_empty_directory(self.UnclassedParentFolder)
 
     def test_chunks_generator__yields_expected_lists(self):
         chunk_size = 2
@@ -58,12 +62,12 @@ class FileToolsTestCase(unittest.TestCase):
         FileTools.copy_files_to_class_dirs(info_file_path=info_file_path, separator=separator,
                                            src_root=src_root, target_root=targ_root, extension='jpg')
 
-        with self.subTest(self, testing_for="image1.jpg copied to dir Class 2"):
+        with self.subTest(self, testing_for='image1.jpg copied to dir Class 2'):
 
             file_path = Path(os.path.join(self.NewFolderRoot, 'Class 2', 'image1.jpg'))
             self.assertTrue(Path.exists(file_path))
 
-        with self.subTest(self, testing_for="image4.jpg copied to dir Class 1"):
+        with self.subTest(self, testing_for='image4.jpg copied to dir Class 1'):
 
             file_path = Path(os.path.join(self.NewFolderRoot, 'Class 2', 'image1.jpg'))
             self.assertTrue(Path.exists(file_path))
@@ -77,11 +81,11 @@ class FileToolsTestCase(unittest.TestCase):
     def test_create_dirs_from_file_header__creates_dirs(self):
         dir_names = FileTools.create_dirs_from_file_header(self.ClassedFileListFile, ',', self.NewFolderRoot)
 
-        with self.subTest(self, testing_for="first folder"):
+        with self.subTest(self, testing_for='first folder'):
             dir_path = Path(os.path.join(self.NewFolderRoot, dir_names[0]))
             self.assertTrue(Path.exists(dir_path))
 
-        with self.subTest(self, testing_for="last folder"):
+        with self.subTest(self, testing_for='last folder'):
             dir_path = Path(os.path.join(self.NewFolderRoot, dir_names[-1]))
             self.assertTrue(Path.exists(dir_path))
         
@@ -196,10 +200,10 @@ class FileToolsTestCase(unittest.TestCase):
         FileTools.save_command_args_to_file(args, actual_save_path)
         actual_save_path = Path(actual_save_path)
 
-        with self.subTest(self, testing_for="saved file exists"):
+        with self.subTest(self, testing_for='saved file exists'):
             self.assertTrue(Path.exists(actual_save_path))
 
-        with self.subTest(self, testing_for="saves expected content"):
+        with self.subTest(self, testing_for='saves expected content'):
             self.assertTrue(filecmp.cmp(expected_save_path, actual_save_path))
 
         # Clean up
@@ -214,7 +218,7 @@ class FileToolsTestCase(unittest.TestCase):
         with self.subTest(self, testing_for="image file saved"):
             self.assertTrue(Path.exists(Path(final_images_file_path)))
 
-        with self.subTest(self, testing_for="saved file has images"):
+        with self.subTest(self, testing_for='saved file has images'):
             images = np.load(final_images_file_path)
             print(images.shape)
 
@@ -227,25 +231,54 @@ class FileToolsTestCase(unittest.TestCase):
         with self.subTest(self, testing_for="image file saved"):
             self.assertTrue(Path.exists(Path(final_images_file_path)))
 
-        with self.subTest(self, testing_for="saved file has images"):
+        with self.subTest(self, testing_for='saved file has images'):
             images = np.load(final_images_file_path)
             print(images.shape)
 
     def test_path_of_first_file_of_type__when_found__returns_path(self):
 
-        with self.subTest(self, testing_for="file exists"):
+        with self.subTest(self, testing_for='file exists'):
             extension = '.jpg'
             expected = os.path.join(self.SourceImagesDir, 'image1.jpg')
             actual = FileTools.path_of_first_file_of_type(directory=self.SourceImagesDir, extension=extension)
 
             self.assertTrue(actual.lower() == expected.lower())
 
-        with self.subTest(self, testing_for="no file with extension exists"):
+        with self.subTest(self, testing_for='no file with extension exists'):
             extension = '.xxx'
             expected = ''
             actual = FileTools.path_of_first_file_of_type(directory=self.SourceImagesDir, extension=extension)
 
             self.assertTrue(actual.lower() == expected.lower())
+
+    def test_dataset_type_from_name(self):
+        expected = 'invalid'
+        with self.subTest(self, testing_for=expected):
+            actual = FileTools.dataset_type_from_name('fred')
+            self.assertEqual(actual, expected)
+        expected = 'train'
+        with self.subTest(self, testing_for=expected):
+            actual = FileTools.dataset_type_from_name('training stuff')
+            self.assertEqual(actual, expected)
+        expected = 'validation'
+        with self.subTest(self, testing_for=expected):
+            actual = FileTools.dataset_type_from_name('validation stuff')
+            self.assertEqual(actual, expected)
+        expected = 'test'
+        with self.subTest(self, testing_for=expected):
+            actual = FileTools.dataset_type_from_name('test stuff')
+            self.assertEqual(actual, expected)
+
+    def test_copy_dir_as_unclassed(self):
+        with self.subTest(self, testing_for='Invalid'):
+            actual = FileTools.copy_dir_as_unclassed(self.SourceImagesDir, self.UnclassedParentFolder)
+            expected = 'Invalid'
+            self.assertTrue(actual == expected)
+        with self.subTest(self, testing_for='Copied'):
+            target_dir = FileTools.copy_dir_as_unclassed(self.TrainingRawFolder, self.UnclassedParentFolder)
+            actual = len(os.listdir(target_dir))
+            expected = len(os.listdir(self.SourceImagesDir))
+            self.assertTrue(actual == expected)
 
 
 if __name__ == '__main__':

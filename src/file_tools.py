@@ -20,7 +20,7 @@ class FileTools:
 
         :param input_list: the list from which chunks are to be yielded
         :param chunk_size: number of items in each chunk
-        :returns: list of length chunk_size
+        :return: list of length chunk_size
         """
         remainder = len(input_list) - (int(len(input_list)/chunk_size) * chunk_size)
 
@@ -91,7 +91,7 @@ class FileTools:
 
         Keyword arguments:
         :param dir_path: root directory path
-        :returns: descriptor of result
+        :return: descriptor of result
         """
         result = 'Invalid'
 
@@ -134,7 +134,7 @@ class FileTools:
 
         Keyword arguments:
         :param file_path: full path to file
-        :returns: list of text lines
+        :return: list of text lines
         """
 
         with open(file_path, 'r') as infile:
@@ -160,7 +160,7 @@ class FileTools:
         extension; datetime will be prefixed to the base name
         :param format: str, the archive format
         :param dir_path_to_archive: str, the path to the directory that is to be archived
-        :returns: name of file
+        :return: name of file
         """
         print('Archiving files...')
         file_name = datetime.datetime.now().strftime('%y%m%d_%H%M_') + Path(base_name).name
@@ -183,13 +183,14 @@ class FileTools:
         return result
 
     @staticmethod
-    def save_command_args_to_file(args: dict, save_path: str):
+    def save_command_args_to_file(args: dict, save_path: str, to_print: bool = False):
         """Save arguments and their values to file. Expects args of type dict, so use vars(args) as input.
 
         Keyword arguments:
 
         :param args: dict, full arguments list
         :param save_path: str, path to file
+        :param to_print: bool, flag for printing args
         """
         parts = ['python']
         lines = []
@@ -208,6 +209,9 @@ class FileTools:
         with open(save_path, 'w', encoding='utf-8') as outfile:
             outfile.write(content)
             print('Command arguments saved to {}.'.format(save_path))
+
+        if to_print:
+            print(content)
 
     @staticmethod
     def create_numpy_archive_from_images_dir(src_dir: str, target_path: str,
@@ -277,3 +281,49 @@ class FileTools:
                     break
 
         return found_path
+
+    @staticmethod
+    def dataset_type_from_name(name: str) -> str:
+        """Return dataset type (train|validation|test) based on name.
+
+        :param name: base name
+        :return: dataset type
+        """
+        dataset_type = 'invalid'
+        types = ['train', 'validation', 'test']
+        for t in types:
+            if name.startswith(t):
+                dataset_type = t
+                break
+
+        return dataset_type
+
+    @staticmethod
+    def copy_dir_as_unclassed(source_dir: str, target_dir: str, replace_content: bool = False) -> str:
+        dataset_type = FileTools.dataset_type_from_name(Path(source_dir).name)
+        can_copy_files = replace_content
+
+        if dataset_type == 'invalid':
+            print(f'Invalid dataset type. Data not copied')
+            can_copy_files = False
+            return 'Invalid'
+
+        # Need extra directory levels to allow PyTorch Dataset to work on unclassified data
+        leaf_target_dir = os.path.join(target_dir, dataset_type, 'unknown')
+        if replace_content or not Path(leaf_target_dir).exists():
+            FileTools.ensure_empty_directory(leaf_target_dir)
+            can_copy_files = True
+        elif len(os.listdir(leaf_target_dir)) > 0:
+            # There's content not getting replaced, get me out of here
+            print(f'Not replacing content of {leaf_target_dir}')
+            return 'Not replaced'
+        else:
+            Path(leaf_target_dir).mkdir(parents=True, exist_ok=True)
+            can_copy_files = True
+
+        if can_copy_files:
+            for root, dirs, files in os.walk(source_dir, topdown=False):
+                for file in files:
+                    shutil.copy(os.path.join(source_dir, file), leaf_target_dir)
+
+        return leaf_target_dir

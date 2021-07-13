@@ -44,7 +44,7 @@ class DownloadHelper:
         Keyword arguments:
         :param unzip_dir: final directory for extracted files
         :param replace_content: flag - replace content of directory
-        :returns: can_extract_to_dir
+        :return: can_extract_to_dir
         """
         if unzip_dir == '':
             can_extract_to_dir = False
@@ -78,7 +78,7 @@ class DownloadHelper:
         :param replace_download: flag - replace file if already exists
         :param can_extract_to_extraction_dir: whether extraction can occur
         :param extraction_dir: target directory for unzip content
-        :returns: to_download
+        :return: to_download
         """
 
         # Download may not be an archive, hence a nuanced check.
@@ -106,7 +106,7 @@ class DownloadHelper:
 
         :param data_dir: Root data directory
         :param filename: Source filename
-        :returns: str
+        :return: extraction_dir_path
         """
         filename = filename.lower()
         extraction_dir_path = 'extracted'
@@ -139,7 +139,7 @@ class DownloadHelper:
 
         :param data_dir: Root data directory
         :param filename: Source filename
-        :returns: str
+        :return: extraction_dir_path
         """
         filename = filename.lower()
         extraction_dir_path = ''
@@ -157,101 +157,9 @@ class DownloadHelper:
         return extraction_dir_path
 
     @staticmethod
-    def download_dataset(data_dir: str, replace_download: bool, replace_unzip_content: bool,
-                         src_url: str, is_isic: bool,
-                         working_dir: str = ''):
-        """Download file from give URL to given directory with chosen name
-
-        Keyword arguments:
-
-        :param data_dir: Target root data directory
-        :param replace_download: flag, whether to replace an existing download of same name
-        :param replace_unzip_content: flag, whether to replace existing extraction content
-        :param src_url: Source URL
-        :param is_isic: flag, whether to be processed as an ISIC file that follows ISIC conventions
-        :param working_dir: (optional) working directory for extraction of download
-        # :param unsupervised: (optional) if set, then use a different folder structure
-        """
-        print('Parameters: \ndata_dir: {}\nreplace_download: {}\nreplace_unzip_content: {}\nsrc_url: {}\nis_isic: {}\n'
-              'working_dir: {}'.
-              format(data_dir, replace_download, replace_unzip_content, src_url, is_isic, working_dir))
-
-        src_path = Path(src_url)
-        target_filename = src_path.name
-        file_type = src_path.suffix
-        if target_filename.endswith('.tar.gz'):
-            file_type = '.tar.gz'
-
-        download_dir = os.path.join(data_dir, 'downloads')
-
-        download_file = os.path.join(download_dir, target_filename)
-        working_dir = data_dir if working_dir == '' else os.path.join(data_dir, working_dir)
-        final_extraction_dir = \
-            DownloadHelper.get_extraction_isic_dir_path(data_dir=working_dir, filename=target_filename) if is_isic \
-            else DownloadHelper.get_extraction_dir_path(data_dir=working_dir, filename=target_filename)
-
-        # Remove temp dir if exists, will recreate later if needed
-        temp_extraction_dir = os.path.join(data_dir, 'temp')
-        if Path(temp_extraction_dir).exists():
-            print('Removing dir tree {}'.format(temp_extraction_dir))
-            shutil.rmtree(temp_extraction_dir)
-
-        # No need to download when any one of these:
-        # - download file already exists and replace_download == False
-        # - unzip dir already exists with files and replace_content == False
-        # - no unzipping needed (inzip dir = ''))
-        can_extract_to_extraction_dir = DownloadHelper.can_extract_to_extraction_dir(
-            unzip_dir=final_extraction_dir, replace_content=replace_unzip_content
-        )
-
-        to_download = DownloadHelper.to_download(
-            target_download_path=download_file, replace_download=replace_download,
-            can_extract_to_extraction_dir=can_extract_to_extraction_dir,
-            extraction_dir=final_extraction_dir
-        )
-
-        if to_download:
-            # Clear target unzip dir, if required
-            if not final_extraction_dir == '' \
-                    and Path(final_extraction_dir).exists() and Path(final_extraction_dir).is_dir():
-                print('Removing dir {}.'.format(final_extraction_dir))
-                shutil.rmtree(final_extraction_dir)
-            DownloadHelper.download_url(src_url, download_file)
-
-        initial_extraction_dir_name = ''
-        if can_extract_to_extraction_dir:
-            Path(temp_extraction_dir).mkdir(parents=True, exist_ok=True)
-            if file_type == '.tar.gz':
-                tar_ref = tarfile.open(download_file, 'r|gz')
-                print(f'Extracting {download_file} to {temp_extraction_dir}')
-                tar_ref.extractall(path=temp_extraction_dir)
-                # Assume that everything is inside a single top level folder.
-                initial_extraction_dir_name = Path(tar_ref.members[0].name).parts[0]
-                tar_ref.close()
-            elif file_type == '.gz':
-                pass
-            elif file_type == '.tar' or file_type == '.zip':
-                with zipfile.ZipFile(download_file, 'r') as zip_ref:
-                    print(f'Extracting {zip_ref.filename} to {temp_extraction_dir}')
-                    zip_ref.extractall(path=temp_extraction_dir)
-                    # Assume that everything is inside a single top level folder.
-                    initial_extraction_dir_name = Path(zip_ref.filelist[0].filename).parts[0]
-
-            # Remove target dir then rename/move unzipped dir
-            if Path(final_extraction_dir).exists():
-                print('Removing dir tree {}'.format(final_extraction_dir))
-                shutil.rmtree(final_extraction_dir)
-            extraction_dir = os.path.join(temp_extraction_dir, initial_extraction_dir_name)
-            print(f'Moving dir "{extraction_dir}" to "{final_extraction_dir}"')
-            Path(Path(final_extraction_dir).parent).mkdir(parents=True, exist_ok=True)
-            os.rename(extraction_dir, final_extraction_dir)
-
-        return final_extraction_dir, working_dir
-
-    @staticmethod
     def download_file(data_dir: str, replace_download: bool, src_url: str, is_isic: bool, replace_unzip_content: bool,
                       working_dir: str = ''):
-        """Download file from give URL to given directory with chosen name
+        """Download file from give URL to given directory with chosen name. Check if download is required.
 
         Keyword arguments:
 
@@ -261,8 +169,10 @@ class DownloadHelper:
         :param is_isic: flag, whether to be processed as an ISIC file that follows ISIC conventions
         :param replace_unzip_content: flag, whether to replace existing extraction content
         :param working_dir: (optional) working directory for extraction of download
+        :return: can_extract_to_extraction_dir, working_dir, final_extraction_dir, download_file_path
         """
-        print('Parameters: \ndata_dir: {}\nreplace_download: {}\nsrc_url: {}\nis_isic: {}\nworking_dir: {}'.
+        print('Parameters (download_file): \ndata_dir: {}'
+              '\nreplace_download: {}\nsrc_url: {}\nis_isic: {}\nworking_dir: {}'.
               format(data_dir, replace_download, src_url, is_isic, working_dir))
 
         src_path = Path(src_url)
@@ -270,7 +180,8 @@ class DownloadHelper:
 
         download_dir = os.path.join(data_dir, 'downloads')
 
-        download_file = os.path.join(download_dir, target_filename)
+        download_file_path = os.path.join(download_dir, target_filename)
+        working_dir = data_dir if working_dir == '' else os.path.join(data_dir, working_dir)
 
         final_extraction_dir = \
             DownloadHelper.get_extraction_isic_dir_path(data_dir=working_dir, filename=target_filename) if is_isic \
@@ -285,7 +196,7 @@ class DownloadHelper:
         )
 
         to_download = DownloadHelper.to_download(
-            target_download_path=download_file, replace_download=replace_download,
+            target_download_path=download_file_path, replace_download=replace_download,
             can_extract_to_extraction_dir=can_extract_to_extraction_dir,
             extraction_dir=final_extraction_dir
         )
@@ -296,6 +207,75 @@ class DownloadHelper:
                     and Path(final_extraction_dir).exists() and Path(final_extraction_dir).is_dir():
                 print('Removing dir {}.'.format(final_extraction_dir))
                 shutil.rmtree(final_extraction_dir)
-            DownloadHelper.download_url(src_url, download_file)
+            DownloadHelper.download_url(src_url, download_file_path)
 
-        return can_extract_to_extraction_dir, final_extraction_dir
+        return can_extract_to_extraction_dir, working_dir, final_extraction_dir, download_file_path
+
+    @staticmethod
+    def unzip_archive(archive_file_path: str, data_dir: str, final_extraction_dir: str):
+        """Extract archive content
+
+        Keyword arguments:
+
+        :param archive_file_path: Path to archive
+        :param data_dir: Target root data directory
+        :param final_extraction_dir: path to final directory of unzipped content
+        # :param unsupervised: (optional) if set, then use a different folder structure
+        """
+        print('Parameters (unzip_archive): \narchive_file_path: {}\ndata_dir: {}\nfinal_extraction_dir: {}'.
+              format(archive_file_path, data_dir, final_extraction_dir))
+
+        target_filename = Path(archive_file_path).name
+        file_type = Path(archive_file_path).suffix
+        if target_filename.endswith('.tar.gz'):
+            file_type = '.tar.gz'
+
+        # Remove temp dir if exists, will recreate later if needed
+        temp_extraction_dir = os.path.join(data_dir, 'temp')
+        if Path(temp_extraction_dir).exists():
+            print('Removing dir tree {}'.format(temp_extraction_dir))
+            shutil.rmtree(temp_extraction_dir)
+
+        initial_extraction_dir_name = ''
+
+        Path(temp_extraction_dir).mkdir(parents=True, exist_ok=True)
+        if file_type == '.tar.gz':
+            tar_ref = tarfile.open(archive_file_path, 'r|gz')
+            print(f'Extracting {archive_file_path} to {temp_extraction_dir}')
+            tar_ref.extractall(path=temp_extraction_dir)
+            # Assume that everything is inside a single top level folder.
+            initial_extraction_dir_name = Path(tar_ref.members[0].name).parts[0]
+            tar_ref.close()
+        elif file_type == '.gz':
+            # Not handled yet
+            print(f'*** Not handling {file_type} archives yet ***')
+            exit()
+        elif file_type == '.tar' or file_type == '.zip':
+            with zipfile.ZipFile(archive_file_path, 'r') as zip_ref:
+                print(f'Extracting {zip_ref.filename} to {temp_extraction_dir}')
+                zip_ref.extractall(path=temp_extraction_dir)
+                # Assume that everything is inside a single top level folder.
+                initial_extraction_dir_name = Path(zip_ref.filelist[0].filename).parts[0]
+
+        # Remove target dir then rename/move unzipped dir
+        if Path(final_extraction_dir).exists():
+            print('Removing dir tree {}'.format(final_extraction_dir))
+            shutil.rmtree(final_extraction_dir)
+
+        extraction_dir = os.path.join(temp_extraction_dir, initial_extraction_dir_name)
+        print(f'Moving dir "{extraction_dir}" to "{final_extraction_dir}"')
+        Path(Path(final_extraction_dir).parent).mkdir(parents=True, exist_ok=True)
+        os.rename(extraction_dir, final_extraction_dir)
+
+        return
+
+    @staticmethod
+    def move_non_archive_file_to_working_dir(download_file_path: str, working_dir: str):
+        file_type = Path(download_file_path).suffix
+        if download_file_path.endswith('.tar.gz'):
+            file_type = '.tar.gz'
+        archive_file_types = ['.tar.gz', '.tar', '.gz', '.zip']
+        if file_type in archive_file_types:
+            print('Archive file, not moving to target folder.')
+        else:
+            os.rename(download_file_path, os.path.join(working_dir, Path(download_file_path).name))

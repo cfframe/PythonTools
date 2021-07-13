@@ -22,10 +22,18 @@ python get_dataset.py -d data -wd isic2018 -i -s https://isic-challenge-data.s3.
 python get_dataset.py -d data -wd isic2018 -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Test_Input.zip
 python get_dataset.py -d data -s http://bergerlab-downloads.csail.mit.edu/spatial-vae/mnist_rotated.tar.gz
 python get_dataset.py -d data -rd -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_LesionGroupings.csv
+
+Unclassified structure:
+python get_dataset.py -d data -wd isic2018 -i -s -u https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_Input.zip
+python get_dataset.py -d data -wd isic2018 -i -s -u https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Validation_Input.zip
+python get_dataset.py -d data -wd isic2018 -i -s -u https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Test_Input.zip
+
+
 """
 
 import argparse
 import os
+from pathlib import Path
 from src.download_helper import DownloadHelper
 from src.file_tools import FileTools
 
@@ -45,8 +53,8 @@ def parse_args():
                         help='Indicate download is an ISIC dataset following ISIC conventions')
     parser.add_argument('-wd', '--working_dir', type=str, default='',
                         help='Target directory for extraction etc (optional)')
-    parser.add_argument('-u', '--unsupervised', action='store_true',
-                        help="Indicate if for unsupervised learning - has a different folder structure")
+    parser.add_argument('-u', '--as_unclassed', action='store_true',
+                        help="Folder structure for unclassed data")
 
     args = parser.parse_args()
 
@@ -54,21 +62,33 @@ def parse_args():
 
 
 def download_and_extract_file(args):
-
-    extraction_dir, working_dir = DownloadHelper.download_dataset(
+    can_extract_to_extraction_dir, working_dir, final_extraction_dir, download_file_path = DownloadHelper.download_file(
         data_dir=args.data_dir,
         replace_download=args.replace_download, replace_unzip_content=args.replace_unzip_content,
         src_url=args.src_url, is_isic=args.is_isic, working_dir=args.working_dir)
 
-    return extraction_dir, working_dir
+    if can_extract_to_extraction_dir:
+        # Have an archive, and it's ok to unzip it
+        DownloadHelper.unzip_archive(archive_file_path=download_file_path,
+                                     data_dir=args.data_dir, final_extraction_dir=final_extraction_dir)
+    else:
+        DownloadHelper.move_non_archive_file_to_working_dir(download_file_path=download_file_path,
+                                                            working_dir=working_dir)
+
+    return final_extraction_dir, working_dir
 
 
 def main():
     args = parse_args()
+    FileTools.save_command_args_to_file(vars(args),
+                                        save_path=os.path.join(Path(args.data_dir).parent,'Command args.txt'),
+                                        to_print=True)
 
     extraction_dir, working_dir = download_and_extract_file(args)
 
-    if not args.is_isic:
+    if args.as_unclassed:
+        FileTools.copy_dir_as_unclassed(extraction_dir, f'{working_dir}_unclassed')
+    elif not args.is_isic:
         result = FileTools.create_numpy_archive_from_images_dir(
             src_dir=extraction_dir, target_path=extraction_dir, new_shape=(64, 64), suffix='.jpg')
 

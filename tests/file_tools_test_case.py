@@ -33,13 +33,18 @@ class FileToolsTestCase(unittest.TestCase):
         self.ImagesFolder = os.path.join(self.Root, 'source_files')
         self.UnclassedParentFolder = os.path.join(self.Root, 'unclassed_parent')
         self.TrainingRawFolder = os.path.join(self.Root, 'training_raw')
+        self.ShallowFolder = os.path.join(self.Root, 'test_folder')
+        self.DeepFolder = os.path.join(self.ShallowFolder, 'nested')
         FileTools.ensure_empty_directory(self.NewFolderRoot)
         FileTools.ensure_empty_directory(self.TrainingRawFolder)
         shutil.copytree(self.SourceImagesDir, self.TrainingRawFolder, dirs_exist_ok=True)
+        FileTools.ensure_empty_directory(self.DeepFolder)
+        shutil.copy(self.TestFilePath, os.path.join(self.DeepFolder, Path(self.TestFilePath).name))
 
     def tearDown(self) -> None:
         FileTools.ensure_empty_directory(self.NewFolderRoot)
         FileTools.ensure_empty_directory(self.UnclassedParentFolder)
+        FileTools.ensure_empty_directory(self.ShallowFolder)
 
     def test_chunks_generator__yields_expected_lists(self):
         chunk_size = 2
@@ -248,6 +253,13 @@ class FileToolsTestCase(unittest.TestCase):
             extension = '.xxx'
             expected = ''
             actual = FileTools.path_of_first_file_of_type(directory=self.SourceImagesDir, extension=extension)
+
+            self.assertTrue(actual.lower() == expected.lower())
+
+        with self.subTest(self, testing_for='deeper nested directory'):
+            extension = '.txt'
+            expected = os.path.join(self.DeepFolder, 'TestFile.txt')
+            actual = FileTools.path_of_first_file_of_type(directory=self.ShallowFolder, extension=extension)
 
             self.assertTrue(actual.lower() == expected.lower())
 

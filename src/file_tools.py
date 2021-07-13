@@ -274,10 +274,10 @@ class FileTools:
     @staticmethod
     def path_of_first_file_of_type(directory: str, extension: str = '.jpg'):
         found_path = ''
-        for __, __, files in os.walk(directory, topdown=False):
+        for root, dirs, files in os.walk(directory, topdown=False):
             for file in files:
                 if Path(file).suffix == extension:
-                    found_path = os.path.join(directory, file)
+                    found_path = os.path.join(root, file)
                     break
 
         return found_path

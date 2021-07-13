@@ -23,25 +23,27 @@ class DownloadHelperTestCase(unittest.TestCase):
         self.RealFilePath = os.path.join(self.Root, "TestFile.txt")
         self.TestDestinationDir = os.path.join(self.Root, "test_folder")
         self.TestDestinationFile = os.path.join(self.TestDestinationDir, "TestFile.txt")
+        self.EmptyFolder = os.path.join(self.Root, "empty_folder")
+        self.NonEmptyFolder = os.path.join(self.Root, "test_for_archive")
 
     def test_can_download__when_target_is_not_file__returns_true(self):
         test_file = self.FakePath
 
         with self.subTest(self, testing_for='use default replace_download'):
-            self.assertTrue(DownloadHelper.can_download(target_path=test_file))
+            self.assertTrue(DownloadHelper.can_download(target_download_path=test_file))
         with self.subTest(self, testing_for='replace_download is False'):
-            self.assertTrue(DownloadHelper.can_download(target_path=test_file, replace_download=False))
+            self.assertTrue(DownloadHelper.can_download(target_download_path=test_file, replace_download=False))
         with self.subTest(self, testing_for='replace_download is True'):
-            self.assertTrue(DownloadHelper.can_download(target_path=test_file, replace_download=True))
+            self.assertTrue(DownloadHelper.can_download(target_download_path=test_file, replace_download=True))
 
     def test_can_download__when_target_is_file__uses_replace_download(self):
         test_file = self.RealFilePath
 
         # Not testing user input route yet, would need to fake it
         with self.subTest(self, testing_for='replace_download is False'):
-            self.assertFalse(DownloadHelper.can_download(target_path=test_file, replace_download=False))
+            self.assertFalse(DownloadHelper.can_download(target_download_path=test_file, replace_download=False))
         with self.subTest(self, testing_for='replace_download is True'):
-            self.assertTrue(DownloadHelper.can_download(target_path=test_file, replace_download=True))
+            self.assertTrue(DownloadHelper.can_download(target_download_path=test_file, replace_download=True))
 
     def test_can_extract_to_extraction_dir__when_target_is_not_dir__returns_true(self):
         test_path = self.FakePath
@@ -108,6 +110,57 @@ class DownloadHelperTestCase(unittest.TestCase):
             filename = 'dummy.tar.gz'
             filepath = Path(DownloadHelper.get_extraction_dir_path(test_path, filename))
             self.assertTrue(filepath.name == Path(Path(filename).stem).stem)
+
+    def test_to_download(self):
+        with self.subTest(self, testing_for='non-archive file'):
+            target_path = self.EmptyFolder
+            replace_download = True
+            can_extract_to_extraction_dir = False
+            extraction_dir = ''
+            actual = DownloadHelper.to_download(target_download_path=target_path, replace_download=replace_download,
+                                                can_extract_to_extraction_dir=can_extract_to_extraction_dir,
+                                                extraction_dir=extraction_dir)
+            self.assertTrue(actual)
+
+        with self.subTest(self, testing_for='archive file, replace download'):
+            target_path = self.EmptyFolder
+            replace_download = True
+            can_extract_to_extraction_dir = True
+            extraction_dir = self.EmptyFolder
+            actual = DownloadHelper.to_download(target_download_path=target_path, replace_download=replace_download,
+                                                can_extract_to_extraction_dir=can_extract_to_extraction_dir,
+                                                extraction_dir=extraction_dir)
+            self.assertTrue(actual)
+
+        with self.subTest(self, testing_for='archive file, do not replace download, file existing'):
+            target_path = self.RealFilePath
+            replace_download = False
+            can_extract_to_extraction_dir = True
+            extraction_dir = self.EmptyFolder
+            actual = DownloadHelper.to_download(target_download_path=target_path, replace_download=replace_download,
+                                                can_extract_to_extraction_dir=can_extract_to_extraction_dir,
+                                                extraction_dir=extraction_dir)
+            self.assertFalse(actual)
+
+        with self.subTest(self, testing_for='archive file, do replace download, file existing'):
+            target_path = self.RealFilePath
+            replace_download = True
+            can_extract_to_extraction_dir = True
+            extraction_dir = self.NonEmptyFolder
+            actual = DownloadHelper.to_download(target_download_path=target_path, replace_download=replace_download,
+                                                can_extract_to_extraction_dir=can_extract_to_extraction_dir,
+                                                extraction_dir=extraction_dir)
+            self.assertTrue(actual)
+
+        with self.subTest(self, testing_for='archive file, do replace download, cannot do extraction'):
+            target_path = self.RealFilePath
+            replace_download = True
+            can_extract_to_extraction_dir = False
+            extraction_dir = self.NonEmptyFolder
+            actual = DownloadHelper.to_download(target_download_path=target_path, replace_download=replace_download,
+                                                can_extract_to_extraction_dir=can_extract_to_extraction_dir,
+                                                extraction_dir=extraction_dir)
+            self.assertFalse(actual)
 
 
 if __name__ == '__main__':

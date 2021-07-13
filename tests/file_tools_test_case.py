@@ -28,9 +28,9 @@ class FileToolsTestCase(unittest.TestCase):
         self.TestList = ['fred', 'woz', 'ere']
         self.ClassedFileListFile = os.path.join(self.Root, 'ClassedFileList.csv')
         self.FolderList = ['Class 1', 'Class 2', 'Class 3', 'Class 4']
-        self.SourceImagesDir = os.path.join(self.Root, 'source_images')
+        self.SourceImagesDir = os.path.join(self.Root, 'source_files')
         self.NewFolderRoot = os.path.join(self.Root, 'test_for_new_folders')
-        self.ImagesFolder = os.path.join(self.Root, 'source_images')
+        self.ImagesFolder = os.path.join(self.Root, 'source_files')
 
         FileTools.ensure_empty_directory(self.NewFolderRoot)
 

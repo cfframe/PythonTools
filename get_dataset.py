@@ -24,9 +24,9 @@ python get_dataset.py -d data -s http://bergerlab-downloads.csail.mit.edu/spatia
 python get_dataset.py -d data -rd -i -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_LesionGroupings.csv
 
 Unclassified structure:
-python get_dataset.py -d data -wd isic2018 -i -s -u https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_Input.zip
-python get_dataset.py -d data -wd isic2018 -i -s -u https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Validation_Input.zip
-python get_dataset.py -d data -wd isic2018 -i -s -u https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Test_Input.zip
+python get_dataset.py -d data -wd isic2018 -i -u -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Training_Input.zip
+python get_dataset.py -d data -wd isic2018 -i -u -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Validation_Input.zip
+python get_dataset.py -d data -wd isic2018 -i -u -s https://isic-challenge-data.s3.amazonaws.com/2018/ISIC2018_Task3_Test_Input.zip
 
 
 """

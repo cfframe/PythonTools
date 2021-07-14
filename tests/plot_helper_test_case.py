@@ -26,8 +26,12 @@ class PlotHelperTestCase(unittest.TestCase):
         self.dataset_up_end = np.asarray([6, -5, 1, 1, 1, 1, 2, 2, 5])
         self.dataset_down_start = 11 - self.dataset_up_start
         self.dataset_down_end = 11 - self.dataset_up_end
+        self.dataset_small_2 = np.asarray([1, 1])
+        self.dataset_small_3 = np.asarray([1, 1, 1])
+        self.dataset_small_4_up_end = np.asarray([1, 1, 1, 5])
+        self.dataset_5_up_end = np.asarray([1, 1, 1, 1, 5])
 
-    def test_legend_location_from_data(self):
+    def test_legend_location_from_data__corners(self):
 
         with self.subTest(self, testing_for="legend_location lower right"):
             expected = 'lower right'
@@ -44,9 +48,29 @@ class PlotHelperTestCase(unittest.TestCase):
             actual = PlotHelper.legend_location_from_data(self.dataset_up_end)
             self.assertEqual(actual, expected)
 
+        with self.subTest(self, testing_for="legend_location 5 up at end"):
+            expected = 'upper left'
+            actual = PlotHelper.legend_location_from_data(self.dataset_5_up_end)
+            self.assertEqual(actual, expected)
+
         with self.subTest(self, testing_for="legend_location lower left"):
             expected = 'lower left'
             actual = PlotHelper.legend_location_from_data(self.dataset_down_end)
+            self.assertEqual(actual, expected)
+
+    def test_legend_location_from_data__small_datasets(self):
+        expected = 'upper centre'
+
+        with self.subTest(self, testing_for="2 values"):
+            actual = PlotHelper.legend_location_from_data(self.dataset_small_2)
+            self.assertEqual(actual, expected)
+
+        with self.subTest(self, testing_for="3 values"):
+            actual = PlotHelper.legend_location_from_data(self.dataset_small_3)
+            self.assertEqual(actual, expected)
+
+        with self.subTest(self, testing_for="4 values up end"):
+            actual = PlotHelper.legend_location_from_data(self.dataset_small_4_up_end)
             self.assertEqual(actual, expected)
 
 

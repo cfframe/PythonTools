@@ -77,6 +77,30 @@ class FileToolsTestCase(unittest.TestCase):
             file_path = Path(os.path.join(self.NewFolderRoot, 'Class 2', 'image1.jpg'))
             self.assertTrue(Path.exists(file_path))
 
+    def test_copy_file_splits_to_class_dirs__files_copied_in_splits(self):
+        info_file_path = self.ClassedFileListFile
+        separator = ','
+        src_root = self.SourceImagesDir
+        targ_major_root = os.path.join(self.NewFolderRoot, 'major')
+        targ_minor_root = os.path.join(self.NewFolderRoot, 'minor')
+        main_split = 0.67
+
+        FileTools.copy_file_splits_to_class_dirs(info_file_path=info_file_path, separator=separator, src_root=src_root,
+                                                 target_major_split_root=targ_major_root,
+                                                 target_minor_split_root=targ_minor_root,
+                                                 main_split=main_split,
+                                                 extension='jpg')
+
+        with self.subTest(self, testing_for='Class 2 major split ok'):
+            expected = 2
+            actual = len(os.listdir(os.path.join(targ_major_root, 'Class 2')))
+            self.assertTrue(actual == expected)
+
+        with self.subTest(self, testing_for='Class 2 minor split ok'):
+            expected = 1
+            actual = len(os.listdir(os.path.join(targ_minor_root, 'Class 2')))
+            self.assertTrue(actual == expected)
+
     def test_create_dirs_from_file_header__returns_folder_list(self):
         actual = FileTools.create_dirs_from_file_header(self.ClassedFileListFile, ',', self.NewFolderRoot)
         expected = self.FolderList

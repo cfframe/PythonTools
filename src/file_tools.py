@@ -6,6 +6,7 @@ import pandas
 from pathlib import Path
 from PIL import Image
 import os
+import random
 import shutil
 from skimage.transform import resize
 import sys
@@ -48,7 +49,7 @@ class FileTools:
         headers = header_line.split(separator)[1:]
 
         for header in headers:
-            os.mkdir(os.path.join(target_root, header))
+            Path(os.path.join(target_root, header)).mkdir(parents=True, exist_ok=True)
 
         return headers
 
@@ -65,7 +66,7 @@ class FileTools:
         :param src_root: root for source files
         :param target_root: root for class dirs
         :param extension: if extension given, then suffix to file names
-        :returns list of folder names
+        :return (dataframe) list of folder names
         """
 
         df = pandas.read_csv(info_file_path, index_col=0)
@@ -79,6 +80,56 @@ class FileTools:
                 src_file = os.path.join(src_root, '.'.join([filename, extension]))
                 target_file = os.path.join(target_dir, '.'.join([filename, extension]))
 
+                shutil.copyfile(src_file, target_file)
+                count += 1
+            print(f'{count} files copied to {target_dir}')
+
+        return df
+
+    @staticmethod
+    def copy_file_splits_to_class_dirs(info_file_path: str, separator: str, src_root: str,
+                                       target_major_split_root: str, target_minor_split_root: str, main_split: float,
+                                       extension: str = ''):
+        """Copy files from source dir to class dirs, with main_split % going to the major split directory
+
+        Keyword arguments:
+        :param info_file_path: full path to file with class data of source files; assume this structure:
+            line 1: headers
+            column 1: file names
+        :param separator: string separator for class names
+        :param src_root: root for source files
+        :param target_major_split_root: main root for class dirs
+        :param target_minor_split_root: split root for class dirs
+        :param main_split: size of major split as decimal fraction of whole
+        :param extension: if extension given, then suffix to file names
+        :return (dataframe) list of folder names
+        """
+
+        df = pandas.read_csv(info_file_path, index_col=0)
+
+        FileTools.create_dirs_from_file_header(info_file_path, separator, target_major_split_root)
+        FileTools.create_dirs_from_file_header(info_file_path, separator, target_minor_split_root)
+
+        for col in df.columns:
+            paths = []
+            for filename in df[df[col] == 1].index:
+                paths.append(os.path.join(src_root, '.'.join([filename, extension])))
+
+            random.shuffle(paths)
+            split_count = int(len(paths) * main_split)
+
+            target_dir = os.path.join(target_major_split_root, col)
+            count = 0
+            for src_file in paths[:split_count]:
+                target_file = src_file.replace(src_root, target_dir)
+                shutil.copyfile(src_file, target_file)
+                count += 1
+            print(f'{count} files copied to {target_dir}')
+
+            target_dir = os.path.join(target_minor_split_root, col)
+            count = 0
+            for src_file in paths[split_count:]:
+                target_file = src_file.replace(src_root, target_dir)
                 shutil.copyfile(src_file, target_file)
                 count += 1
             print(f'{count} files copied to {target_dir}')

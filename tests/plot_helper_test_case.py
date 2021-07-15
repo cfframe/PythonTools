@@ -59,7 +59,7 @@ class PlotHelperTestCase(unittest.TestCase):
             self.assertEqual(actual, expected)
 
     def test_legend_location_from_data__small_datasets(self):
-        expected = 'upper centre'
+        expected = 'upper center'
 
         with self.subTest(self, testing_for="2 values"):
             actual = PlotHelper.legend_location_from_data(self.dataset_small_2)

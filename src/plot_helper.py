@@ -31,7 +31,7 @@ class PlotHelper:
         # Dataset is exceptionally small, so just set defaults
         if half_len <= 1:
             vertical = 'upper'
-            horizontal = 'centre'
+            horizontal = 'center'
 
         else:
 

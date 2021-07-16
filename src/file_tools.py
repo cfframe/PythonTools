@@ -86,9 +86,62 @@ class FileTools:
 
         return df
 
+    # @staticmethod
+    # def copy_file_splits_to_class_dirs(info_file_path: str, separator: str, src_root: str,
+    #                                    target_major_split_root: str, target_minor_split_root: str, main_split: float,
+    #                                    extension: str = ''):
+    #     """Copy files from source dir to class dirs, with main_split % going to the major split directory
+    #
+    #     Keyword arguments:
+    #     :param info_file_path: full path to file with class data of source files; assume this structure:
+    #         line 1: headers
+    #         column 1: file names
+    #     :param separator: string separator for class names
+    #     :param src_root: root for source files
+    #     :param target_major_split_root: main root for class dirs
+    #     :param target_minor_split_root: split root for class dirs
+    #     :param main_split: size of major split as decimal fraction of whole
+    #     :param extension: if extension given, then suffix to file names
+    #     :return (dataframe) list of folder names
+    #     """
+    #
+    #     df = pandas.read_csv(info_file_path, index_col=0)
+    #
+    #     FileTools.create_dirs_from_file_header(info_file_path, separator, target_major_split_root)
+    #     FileTools.create_dirs_from_file_header(info_file_path, separator, target_minor_split_root)
+    #
+    #     for col in df.columns:
+    #         paths = []
+    #         for filename in df[df[col] == 1].index:
+    #             paths.append(os.path.join(src_root, '.'.join([filename, extension])))
+    #
+    #         random.shuffle(paths)
+    #         split_count = int(len(paths) * main_split)
+    #
+    #         target_dir = os.path.join(target_major_split_root, col)
+    #         count = 0
+    #         for src_file in paths[:split_count]:
+    #             target_file = src_file.replace(src_root, target_dir)
+    #             shutil.copyfile(src_file, target_file)
+    #             count += 1
+    #         print(f'{count} files copied to {target_dir}')
+    #
+    #         target_dir = os.path.join(target_minor_split_root, col)
+    #         count = 0
+    #         for src_file in paths[split_count:]:
+    #             target_file = src_file.replace(src_root, target_dir)
+    #             shutil.copyfile(src_file, target_file)
+    #             count += 1
+    #         print(f'{count} files copied to {target_dir}')
+    #
+    #     return df
+
     @staticmethod
     def copy_file_splits_to_class_dirs(info_file_path: str, separator: str, src_root: str,
-                                       target_major_split_root: str, target_minor_split_root: str, main_split: float,
+                                       split_roots: list,
+                                       # target_major_split_root: str, target_minor_split_root: str,
+                                       splits: list,
+                                       # main_split: float,
                                        extension: str = ''):
         """Copy files from source dir to class dirs, with main_split % going to the major split directory
 
@@ -98,41 +151,53 @@ class FileTools:
             column 1: file names
         :param separator: string separator for class names
         :param src_root: root for source files
-        :param target_major_split_root: main root for class dirs
-        :param target_minor_split_root: split root for class dirs
-        :param main_split: size of major split as decimal fraction of whole
+        :param split_roots: list of root directories for classes, starting with main root split
+        :param splits: list of relative sizes of splits as ints
         :param extension: if extension given, then suffix to file names
         :return (dataframe) list of folder names
         """
 
         df = pandas.read_csv(info_file_path, index_col=0)
 
-        FileTools.create_dirs_from_file_header(info_file_path, separator, target_major_split_root)
-        FileTools.create_dirs_from_file_header(info_file_path, separator, target_minor_split_root)
+        splits_total = np.sum(splits)
 
+        for split_root in split_roots:
+            FileTools.create_dirs_from_file_header(info_file_path, separator, split_root)
+
+        # Handle by class, for all splits
         for col in df.columns:
+            # Get file paths
             paths = []
             for filename in df[df[col] == 1].index:
                 paths.append(os.path.join(src_root, '.'.join([filename, extension])))
 
             random.shuffle(paths)
-            split_count = int(len(paths) * main_split)
 
-            target_dir = os.path.join(target_major_split_root, col)
-            count = 0
-            for src_file in paths[:split_count]:
-                target_file = src_file.replace(src_root, target_dir)
-                shutil.copyfile(src_file, target_file)
-                count += 1
-            print(f'{count} files copied to {target_dir}')
+            # Calculate the number of files per split; last one is special case
+            split_counts = []
+            for split in splits[:len(splits) - 1]:
+                split_count = int(len(paths) * split / splits_total)
+                split_counts.append(split_count)
 
-            target_dir = os.path.join(target_minor_split_root, col)
-            count = 0
-            for src_file in paths[split_count:]:
-                target_file = src_file.replace(src_root, target_dir)
-                shutil.copyfile(src_file, target_file)
-                count += 1
-            print(f'{count} files copied to {target_dir}')
+            split_count = len(paths) - np.sum(split_counts)
+            split_counts.append(split_count)
+
+            # Handle the directory splits.
+            temp_split_roots = split_roots.copy()
+            while len(temp_split_roots) > 0:
+                target_dir = os.path.join(temp_split_roots[0], col)
+                count = 0
+                for src_file in paths[:split_counts[0]]:
+                    target_file = src_file.replace(src_root, target_dir)
+                    shutil.copyfile(src_file, target_file)
+                    count += 1
+                    print(f'{count} files copied to {target_dir}')
+
+                # Remove items just done
+                if split_counts[0] > 0:
+                    paths = (paths[split_counts[0]:])
+                temp_split_roots.remove(temp_split_roots[0])
+                split_counts.remove(split_counts[0])
 
         return df
 

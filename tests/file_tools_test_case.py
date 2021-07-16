@@ -81,25 +81,35 @@ class FileToolsTestCase(unittest.TestCase):
         info_file_path = self.ClassedFileListFile
         separator = ','
         src_root = self.SourceImagesDir
-        targ_major_root = os.path.join(self.NewFolderRoot, 'major')
-        targ_minor_root = os.path.join(self.NewFolderRoot, 'minor')
-        main_split = 0.67
+        split1 = os.path.join(self.NewFolderRoot, 'split1')
+        split2 = os.path.join(self.NewFolderRoot, 'split2')
+        split3 = os.path.join(self.NewFolderRoot, 'split3')
+        targ_roots = [split1, split2, split3]
+        targ_splits = [1, 3, 2]
 
         FileTools.copy_file_splits_to_class_dirs(info_file_path=info_file_path, separator=separator, src_root=src_root,
-                                                 target_major_split_root=targ_major_root,
-                                                 target_minor_split_root=targ_minor_root,
-                                                 main_split=main_split,
+                                                 split_roots=targ_roots,
+                                                 splits=targ_splits,
                                                  extension='jpg')
 
-        with self.subTest(self, testing_for='Class 2 major split ok'):
-            expected = 2
-            actual = len(os.listdir(os.path.join(targ_major_root, 'Class 2')))
-            self.assertTrue(actual == expected)
+        split_class = 'Class 1'
+        split_folder = 'split1'
+        expected = 1
+        with self.subTest(self, testing_for=f'{split_folder} {split_class}'):
+            actual = len(os.listdir(os.path.join(os.path.join(self.NewFolderRoot, split_folder), split_class)))
+            self.assertEqual(actual, expected)
 
-        with self.subTest(self, testing_for='Class 2 minor split ok'):
-            expected = 1
-            actual = len(os.listdir(os.path.join(targ_minor_root, 'Class 2')))
-            self.assertTrue(actual == expected)
+        split_folder = 'split2'
+        expected = 3
+        with self.subTest(self, testing_for=f'{split_folder} {split_class}'):
+            actual = len(os.listdir(os.path.join(os.path.join(self.NewFolderRoot, split_folder), split_class)))
+            self.assertEqual(actual, expected)
+
+        split_folder = 'split3'
+        expected = 2
+        with self.subTest(self, testing_for=f'{split_folder} {split_class}'):
+            actual = len(os.listdir(os.path.join(os.path.join(self.NewFolderRoot, split_folder), split_class)))
+            self.assertEqual(actual, expected)
 
     def test_create_dirs_from_file_header__returns_folder_list(self):
         actual = FileTools.create_dirs_from_file_header(self.ClassedFileListFile, ',', self.NewFolderRoot)

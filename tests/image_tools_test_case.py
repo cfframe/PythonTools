@@ -27,9 +27,13 @@ class ImageToolsTestCase(TestCase):
 
         self.TestFilePath = os.path.join(self.Root, 'TestFile.txt')
         self.SourceImagesDir = os.path.join(self.Root, 'source_files')
-        self.SquareImageList = ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg']
+        self.ImageList = ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg']
         self.NewImagesFolder = os.path.join(self.Root, 'new_images')
-        self.SquareImagePaths = [os.path.join(self.SourceImagesDir, i) for i in self.SquareImageList]
+        self.SquareImagePaths = [os.path.join(self.SourceImagesDir, i) for i in self.ImageList]
+        self.WideImagesDir = os.path.join(self.Root, 'wide_images')
+        self.WideImagePaths = [os.path.join(self.WideImagesDir, i) for i in self.ImageList]
+        self.HighImagesDir = os.path.join(self.Root, 'high_images')
+        self.HighImagePaths = [os.path.join(self.HighImagesDir, i) for i in self.ImageList]
 
         FileTools.ensure_empty_directory(self.NewImagesFolder)
 
@@ -38,7 +42,7 @@ class ImageToolsTestCase(TestCase):
 
     def test_pad_images_array_to_aspect_ratio(self):
         images = [np.array(Image.open(image_path)) for image_path in self.SquareImagePaths]
-        new_paths = [os.path.join(self.NewImagesFolder, i) for i in self.SquareImageList]
+        new_paths = [os.path.join(self.NewImagesFolder, i) for i in self.ImageList]
         images = np.asarray(images, dtype='uint8')
 
         with self.subTest(self, testing_for='pad to high rectangle'):
@@ -59,3 +63,35 @@ class ImageToolsTestCase(TestCase):
             ref_image_path = os.path.join(self.SourceImagesDir, 'image1wide.jpg')
 
             self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
+
+    def test_crop_images_array_to_squares(self):
+        new_paths = [os.path.join(self.NewImagesFolder, i) for i in self.ImageList]
+
+        with self.subTest(self, testing_for='wide rectangle to square'):
+            images = [np.array(Image.open(image_path)) for image_path in self.WideImagePaths]
+            images = np.asarray(images, dtype='uint8')
+
+            square_images = ImageTools.crop_images_array_to_squares(images)
+
+            for i in range(len(square_images)):
+                img = Image.fromarray(square_images[i], 'RGB')
+                img.save(new_paths[i])
+
+            ref_image_path = os.path.join(self.SourceImagesDir, 'image1square1.jpg')
+
+            self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
+
+        with self.subTest(self, testing_for='high rectangle to square'):
+            images = [np.array(Image.open(image_path)) for image_path in self.HighImagePaths]
+            images = np.asarray(images, dtype='uint8')
+
+            square_images = ImageTools.crop_images_array_to_squares(images)
+
+            for i in range(len(square_images)):
+                img = Image.fromarray(square_images[i], 'RGB')
+                img.save(new_paths[i])
+
+            ref_image_path = os.path.join(self.SourceImagesDir, 'image1square2.jpg')
+
+            self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
+

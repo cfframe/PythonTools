@@ -43,12 +43,11 @@ class ImageToolsTestCase(TestCase):
     def test_pad_images_array_to_aspect_ratio(self):
         images = [np.array(Image.open(image_path)) for image_path in self.SquareImagePaths]
         new_paths = [os.path.join(self.NewImagesFolder, i) for i in self.ImageList]
-        images = np.asarray(images, dtype='uint8')
 
         with self.subTest(self, testing_for='pad to high rectangle'):
-            high_images = ImageTools.pad_images_array_to_aspect_ratio(images, (3, 4))
-            for i in range(len(high_images)):
-                img = Image.fromarray(high_images[i], 'RGB')
+            new_images = ImageTools.pad_images_array_to_aspect_ratio(images, (3, 4))
+            for i in range(len(new_images)):
+                img = Image.fromarray(new_images[i], 'RGB')
                 img.save(new_paths[i])
 
             ref_image_path = os.path.join(self.SourceImagesDir, 'image1high.jpg')
@@ -56,11 +55,31 @@ class ImageToolsTestCase(TestCase):
             self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
 
         with self.subTest(self, testing_for='pad to wide rectangle'):
-            wide_images = ImageTools.pad_images_array_to_aspect_ratio(images, (4, 3))
-            for i in range(len(wide_images)):
-                img = Image.fromarray(wide_images[i], 'RGB')
+            new_images = ImageTools.pad_images_array_to_aspect_ratio(images, (4, 3))
+            for i in range(len(new_images)):
+                img = Image.fromarray(new_images[i], 'RGB')
                 img.save(new_paths[i])
             ref_image_path = os.path.join(self.SourceImagesDir, 'image1wide.jpg')
+
+            self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
+
+        with self.subTest(self, testing_for='pad wide rectangle to square'):
+            images = [np.array(Image.open(image_path)) for image_path in self.WideImagePaths]
+            new_images = ImageTools.pad_images_array_to_aspect_ratio(images, (1, 1))
+            for i in range(len(new_images)):
+                img = Image.fromarray(new_images[i], 'RGB')
+                img.save(new_paths[i])
+            ref_image_path = os.path.join(self.SourceImagesDir, 'image1bigsquare1.jpg')
+
+            self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
+
+        with self.subTest(self, testing_for='pad high rectangle to square'):
+            images = [np.array(Image.open(image_path)) for image_path in self.HighImagePaths]
+            new_images = ImageTools.pad_images_array_to_aspect_ratio(images, (1, 1))
+            for i in range(len(new_images)):
+                img = Image.fromarray(new_images[i], 'RGB')
+                img.save(new_paths[i])
+            ref_image_path = os.path.join(self.SourceImagesDir, 'image1bigsquare2.jpg')
 
             self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
 
@@ -95,3 +114,60 @@ class ImageToolsTestCase(TestCase):
 
             self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
 
+    def test_crop_images_centre(self):
+        new_paths = [os.path.join(self.NewImagesFolder, i) for i in self.ImageList]
+
+        with self.subTest(self, testing_for='wide rectangle to square'):
+            images = [Image.open(image_path) for image_path in self.WideImagePaths]
+
+            square_images = ImageTools.crop_images_centre(images)
+
+            for i in range(len(square_images)):
+                img = square_images[i]
+                img.save(new_paths[i])
+
+            ref_image_path = os.path.join(self.SourceImagesDir, 'image1square1.jpg')
+
+            self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
+
+        with self.subTest(self, testing_for='wide rectangle to circle'):
+            images = [Image.open(image_path) for image_path in self.WideImagePaths]
+
+            square_images = ImageTools.crop_images_centre(images, make_circle=True)
+
+            for i in range(len(square_images)):
+                img = square_images[i]
+                img.save(new_paths[i])
+
+            ref_image_path = os.path.join(self.SourceImagesDir, 'image1circle2.jpg')
+
+            self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
+
+    def test_circle_crop_square_images(self):
+        new_paths = [os.path.join(self.NewImagesFolder, i) for i in self.ImageList]
+
+        images = [Image.open(image_path) for image_path in self.SquareImagePaths]
+
+        circle_images = ImageTools.circle_crop_square_images(images)
+
+        for i in range(len(circle_images)):
+            img = circle_images[i]
+            img.save(new_paths[i])
+
+        ref_image_path = os.path.join(self.SourceImagesDir, 'image1circle.jpg')
+
+        self.assertTrue(filecmp.cmp(new_paths[0], ref_image_path))
+
+    def test_random_rotate_image(self):
+        # todo: refactor so that can test rotation with padding on a fixed rotational value, which could be testable
+        new_paths = [os.path.join(self.NewImagesFolder, i) for i in self.ImageList]
+        count = 5
+        images = [Image.open(image_path) for image_path in self.WideImagePaths]
+        for i in range(len(images)):
+            rotated_images = ImageTools.random_rotate_image(images[i], count=count)
+
+            for j in range(count):
+                img = rotated_images[j]
+                img.convert('RGB').save(new_paths[i].replace('.jpg', f'_{j}.jpg'))
+
+        print('done')

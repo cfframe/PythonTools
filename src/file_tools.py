@@ -118,21 +118,21 @@ class FileTools:
     #         random.shuffle(paths)
     #         split_count = int(len(paths) * main_split)
     #
-    #         target_dir = os.path.join(target_major_split_root, col)
+    #         output_dir = os.path.join(target_major_split_root, col)
     #         count = 0
     #         for src_file in paths[:split_count]:
-    #             target_file = src_file.replace(src_root, target_dir)
+    #             target_file = src_file.replace(src_root, output_dir)
     #             shutil.copyfile(src_file, target_file)
     #             count += 1
-    #         print(f'{count} files copied to {target_dir}')
+    #         print(f'{count} files copied to {output_dir}')
     #
-    #         target_dir = os.path.join(target_minor_split_root, col)
+    #         output_dir = os.path.join(target_minor_split_root, col)
     #         count = 0
     #         for src_file in paths[split_count:]:
-    #             target_file = src_file.replace(src_root, target_dir)
+    #             target_file = src_file.replace(src_root, output_dir)
     #             shutil.copyfile(src_file, target_file)
     #             count += 1
-    #         print(f'{count} files copied to {target_dir}')
+    #         print(f'{count} files copied to {output_dir}')
     #
     #     return df
 

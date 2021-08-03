@@ -1,6 +1,8 @@
 # image_tools.py
 
 import numpy as np
+from PIL import Image, ImageDraw
+import random
 
 
 class ImageTools:
@@ -15,6 +17,8 @@ class ImageTools:
         :return: array of padded images
         """
 
+        images = np.asarray(images, dtype='uint8')
+
         yi, xi = images.shape[-3], images.shape[-2]
 
         xj, yj = aspect_ratio
@@ -22,11 +26,13 @@ class ImageTools:
         new_images = []
         swap_axes = False
         to_process_images = False
-        if yi >= xi and xj > yj:
+        if float(yi)/xi > float(yj)/xj:
             # Square or vertical rectangle to horizontal rectangle
+            # or vertical rectangle to square
             to_process_images = True
-        elif xi >= yi and yj > xj:
+        elif float(yi)/xi < float(yj)/xj:
             # Square or horizontal rectangle to vertical rectangle
+            # or horizontal rectangle to square
             swap_axes = True
             to_process_images = True
             # Swap x and y dimensions
@@ -48,6 +54,7 @@ class ImageTools:
                 axis = 1
                 add_1n = np.tile(add_1[:, np.newaxis, :], (1, delta_x // 2, 1))
                 add_2n = np.tile(add_2[:, np.newaxis, :], (1, xk - xi - delta_x // 2, 1))
+
                 new_image = np.concatenate(
                     (add_1n,
                      img,
@@ -57,6 +64,9 @@ class ImageTools:
 
             if swap_axes:
                 new_images = np.transpose(new_images, axes=(0, 2, 1, 3))
+        else:
+            # No change, so return original images
+            new_images = images
 
         return new_images
 
@@ -68,6 +78,7 @@ class ImageTools:
         :return: array of cropped images
         """
 
+        images = np.asarray(images, dtype='uint8')
         yi, xi = images.shape[-3], images.shape[-2]
 
         new_images = []
@@ -96,3 +107,93 @@ class ImageTools:
 
         return new_images
 
+    @staticmethod
+    def crop_images_centre(pil_images: list, make_circle: bool = False):
+        """Crop images to shorter dimension.
+
+        Assumes all source images are the same dimension
+
+        :param pil_images: list of images
+        :param make_circle: flag for whether to crop to circle (default: False)
+        :return: list of cropped images
+        """
+
+        img_width, img_height = pil_images[0].size
+        crop_size = np.min((img_width, img_height))
+
+        cropped_images = []
+        for pil_image in pil_images:
+            cropped_images.append(
+                pil_image.crop(
+                    ((img_width - crop_size) // 2,
+                     (img_height - crop_size) // 2,
+                     (img_width + crop_size) // 2,
+                     (img_height + crop_size) // 2)
+                )
+            )
+
+        if make_circle:
+            cropped_images = ImageTools.circle_crop_square_images(cropped_images)
+
+        return cropped_images
+
+    @staticmethod
+    def circle_crop_square_images(pil_images: list):
+        """Circle crop images
+
+        Assumes all source images are the square
+
+        :param pil_images: list of images
+        :return: list of cropped images
+        """
+
+        circle_images = []
+        pil_image = pil_images[0]
+        background = Image.new(pil_image.mode, pil_image.size, 0)
+        mask = Image.new('L', pil_image.size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, pil_image.size[0], pil_image.size[1]), fill=255)
+
+        for pil_image in pil_images:
+
+            circle_images.append(
+                Image.composite(pil_image, background, mask)
+            )
+
+        return circle_images
+
+    @staticmethod
+    def random_rotate_image(pil_image, count: int):
+        """Generate rotated versions of a list of images, with padding based on outer edges.
+
+        :param pil_image: PIL image
+        :param count: number of output images
+        :return: list of rotated images
+        """
+        # todo: refactor so that can test rotation with padding on a fixed rotational value, which could be testable
+
+        # Enlarge to a rectangle based on diagonal, enlarge to a square, rotate then crop to original dimensions.
+        x, y = size = pil_image.size
+
+        diagonal = int(np.ceil(np.sqrt(pil_image.size[0] ** 2 + pil_image.size[1] ** 2)))
+        pil_image = [np.array(pil_image)]
+
+        aspect_ratio = (diagonal, y)
+
+        pil_image = ImageTools.pad_images_array_to_aspect_ratio(pil_image, aspect_ratio)
+        pil_image = ImageTools.pad_images_array_to_aspect_ratio(pil_image, (1, 1))
+        pil_image = Image.fromarray(pil_image[0])
+
+        rotated_images = []
+        rotations = [random.random() * 360 for dummy in range(count)]
+        for rot in range(count):
+            rot_image = pil_image.rotate(rotations[rot])
+            # Crop to original size
+            left = (rot_image.size[0] - size[0]) // 2
+            right = left + size[0]
+            upper = (rot_image.size[1] - size[1]) // 2
+            lower = upper + size[1]
+            rot_image = rot_image.crop((left, upper, right, lower))
+            rotated_images.append(rot_image)
+
+        return rotated_images

@@ -26,6 +26,7 @@ class PlotHelperTestCase(unittest.TestCase):
         self.dataset_up_end = np.asarray([6, -5, 1, 1, 1, 1, 2, 2, 5])
         self.dataset_down_start = 11 - self.dataset_up_start
         self.dataset_down_end = 11 - self.dataset_up_end
+        self.dataset_small_1 = np.asarray([1])
         self.dataset_small_2 = np.asarray([1, 1])
         self.dataset_small_3 = np.asarray([1, 1, 1])
         self.dataset_small_4_up_end = np.asarray([1, 1, 1, 5])
@@ -60,6 +61,10 @@ class PlotHelperTestCase(unittest.TestCase):
 
     def test_legend_location_from_data__small_datasets(self):
         expected = 'upper center'
+
+        with self.subTest(self, testing_for="1 value"):
+            actual = PlotHelper.legend_location_from_data(self.dataset_small_1)
+            self.assertEqual(actual, expected)
 
         with self.subTest(self, testing_for="2 values"):
             actual = PlotHelper.legend_location_from_data(self.dataset_small_2)

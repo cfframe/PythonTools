@@ -2,11 +2,12 @@
 
 import datetime
 import numpy as np
-import pandas
+import pandas as pd
 from pathlib import Path
 from PIL import Image
 import os
 import random
+import re
 import shutil
 from skimage.transform import resize
 import sys
@@ -69,7 +70,7 @@ class FileTools:
         :return (dataframe) list of folder names
         """
 
-        df = pandas.read_csv(info_file_path, index_col=0)
+        df = pd.read_csv(info_file_path, index_col=0)
 
         FileTools.create_dirs_from_file_header(info_file_path, separator, target_root)
 
@@ -105,7 +106,7 @@ class FileTools:
     #     :return (dataframe) list of folder names
     #     """
     #
-    #     df = pandas.read_csv(info_file_path, index_col=0)
+    #     df = pd.read_csv(info_file_path, index_col=0)
     #
     #     FileTools.create_dirs_from_file_header(info_file_path, separator, target_major_split_root)
     #     FileTools.create_dirs_from_file_header(info_file_path, separator, target_minor_split_root)
@@ -157,7 +158,7 @@ class FileTools:
         :return (dataframe) list of folder names
         """
 
-        df = pandas.read_csv(info_file_path, index_col=0)
+        df = pd.read_csv(info_file_path, index_col=0)
 
         splits_total = np.sum(splits)
 
@@ -443,3 +444,47 @@ class FileTools:
                     shutil.copy(os.path.join(source_dir, file), leaf_target_dir)
 
         return leaf_target_dir
+
+    @staticmethod
+    def collate_files_by_low_level_dir_name(source_dir: str, low_level_dir_name: str, path_parts_re: list)\
+            -> np.ndarray:
+        """
+        Collate files within a regular structure but deep structure into an alternative one.
+        Assume source files of interest are in commonly named sub-directories.
+
+        E.g. Copy only those within 'Start' folders (this is the low_level_dir_name)
+        from SourceDir/chXX/XX_NN/Start/filenameXX_NN.ext
+        to TargetDir/XX_NN/filenameXX_NN.ext
+
+        :param source_dir: top level source directory
+        :param low_level_dir_name: lowest level commonly named directory
+        :param path_parts_re: list of common parts of file paths to rename or remove, defined as regular expressions
+        :return: data list of lists [file path, file name, copy path]
+        """
+        path = Path(source_dir)
+
+        file_paths = []
+        file_names = []
+
+        for p in [p for p in path.rglob("*") if p.is_file() and p.parent.name == low_level_dir_name]:
+            file_paths.append(str(p))
+            file_names.append(p.name)
+
+        data = np.zeros(len(file_paths), dtype={'names': ('FilePath', 'FileName', 'CopyPath'),
+                                                'formats': ('U256', 'U64', 'U256')})
+
+        copy_paths = [str(fp) for fp in file_paths]
+
+        for part in path_parts_re:
+            copy_paths = [re.sub(part[0], part[1], fp) for fp in copy_paths]
+
+        data['FilePath'] = file_paths
+        data['FileName'] = file_names
+        data['CopyPath'] = copy_paths
+
+        for item in data:
+            Path(Path(item['CopyPath']).parent).mkdir(parents=True, exist_ok=True)
+            shutil.copy(item['FilePath'], item['CopyPath'])
+            print(f'Copy {item["FileName"]} from {Path(item["FilePath"]).parent} to {Path(item["CopyPath"]).parent}')
+
+        return data

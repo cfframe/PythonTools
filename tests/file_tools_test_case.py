@@ -35,16 +35,20 @@ class FileToolsTestCase(unittest.TestCase):
         self.TrainingRawFolder = os.path.join(self.Root, 'training_raw')
         self.ShallowFolder = os.path.join(self.Root, 'test_folder')
         self.DeepFolder = os.path.join(self.ShallowFolder, 'nested')
+        self.DeepSourceFiles = os.path.join(self.Root, 'deep_source_files')
+        self.CollatedFolder = os.path.join(self.Root, 'collated_folder')
         FileTools.ensure_empty_directory(self.NewFolderRoot)
         FileTools.ensure_empty_directory(self.TrainingRawFolder)
         shutil.copytree(self.SourceImagesDir, self.TrainingRawFolder, dirs_exist_ok=True)
         FileTools.ensure_empty_directory(self.DeepFolder)
         shutil.copy(self.TestFilePath, os.path.join(self.DeepFolder, Path(self.TestFilePath).name))
+        FileTools.ensure_empty_directory(self.CollatedFolder)
 
     def tearDown(self) -> None:
         FileTools.ensure_empty_directory(self.NewFolderRoot)
         FileTools.ensure_empty_directory(self.UnclassedParentFolder)
         FileTools.ensure_empty_directory(self.ShallowFolder)
+        FileTools.ensure_empty_directory(self.CollatedFolder)
 
     def test_chunks_generator__yields_expected_lists(self):
         chunk_size = 2
@@ -325,6 +329,26 @@ class FileToolsTestCase(unittest.TestCase):
             actual = len(os.listdir(target_dir))
             expected = len(os.listdir(self.SourceImagesDir))
             self.assertTrue(actual == expected)
+
+    def test_collate_files_by_low_level_dir_name(self):
+        source_dir = self.DeepSourceFiles
+        target_dir = self.CollatedFolder
+        source_name = Path(source_dir).name
+        target_name = Path(target_dir).name
+        low_level_dir_name = 'Start'
+        path_parts_re = [[source_name, target_name],
+                         [r'\\Ch\d+', ''],
+                         [r'\\Start\\', r'\\']]
+
+        data = FileTools.collate_files_by_low_level_dir_name(source_dir, low_level_dir_name, path_parts_re)
+
+        # Expected number of files found
+        with self.subTest(self):
+            self.assertTrue(len(data) == 5)
+
+        # Copied file exists
+        with self.subTest(self):
+            self.assertTrue(Path(data[0]['CopyPath']).exists())
 
 
 if __name__ == '__main__':

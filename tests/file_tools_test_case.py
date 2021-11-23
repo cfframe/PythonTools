@@ -36,6 +36,7 @@ class FileToolsTestCase(unittest.TestCase):
         self.ShallowFolder = os.path.join(self.Root, 'test_folder')
         self.DeepFolder = os.path.join(self.ShallowFolder, 'nested')
         self.DeepSourceFiles = os.path.join(self.Root, 'deep_source_files')
+        self.DeepSourceFilesSuffixed = os.path.join(self.Root, 'deep_source_files_suffixed')
         self.CollatedFolder = os.path.join(self.Root, 'collated_folder')
         FileTools.ensure_empty_directory(self.NewFolderRoot)
         FileTools.ensure_empty_directory(self.TrainingRawFolder)
@@ -275,7 +276,7 @@ class FileToolsTestCase(unittest.TestCase):
             self.assertTrue(Path.exists(Path(final_images_file_path)))
 
         with self.subTest(self, testing_for='saved file has images'):
-            images = np.load(final_images_file_path)
+            images = np.load(file=final_images_file_path, allow_pickle=True)
             print(images.shape)
 
     def test_path_of_first_file_of_type__when_found__returns_path(self):
@@ -339,6 +340,24 @@ class FileToolsTestCase(unittest.TestCase):
         path_parts_re = [[source_name, target_name],
                          [r'\\Ch\d+', ''],
                          [r'\\Start\\', r'\\']]
+
+        data = FileTools.collate_files_by_low_level_dir_name(source_dir, low_level_dir_name, path_parts_re)
+
+        # Expected number of files found
+        with self.subTest(self):
+            self.assertTrue(len(data) == 5)
+
+        # Copied file exists
+        with self.subTest(self):
+            self.assertTrue(Path(data[0]['CopyPath']).exists())
+
+    def test_collate_files_by_low_level_dir_name__with_suffix(self):
+        source_dir = self.DeepSourceFilesSuffixed
+        target_dir = self.CollatedFolder
+        source_name = Path(source_dir).name
+        target_name = Path(target_dir).name
+        low_level_dir_name = 'begin'
+        path_parts_re = [[source_name, target_name]]
 
         data = FileTools.collate_files_by_low_level_dir_name(source_dir, low_level_dir_name, path_parts_re)
 

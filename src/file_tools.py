@@ -457,7 +457,7 @@ class FileTools:
         to TargetDir/XX_NN/filenameXX_NN.ext
 
         :param source_dir: top level source directory
-        :param low_level_dir_name: lowest level commonly named directory
+        :param low_level_dir_name: lowest level commonly named directory, or common suffix
         :param path_parts_re: list of common parts of file paths to rename or remove, defined as regular expressions
         :return: data list of lists [file path, file name, copy path]
         """
@@ -466,7 +466,7 @@ class FileTools:
         file_paths = []
         file_names = []
 
-        for p in [p for p in path.rglob("*") if p.is_file() and p.parent.name == low_level_dir_name]:
+        for p in [p for p in path.rglob("*") if p.is_file() and p.parent.name.endswith(low_level_dir_name)]:
             file_paths.append(str(p))
             file_names.append(p.name)
 

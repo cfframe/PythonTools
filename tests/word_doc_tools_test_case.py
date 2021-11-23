@@ -26,10 +26,10 @@ class WordDocumentToolsTestCase(unittest.TestCase):
         """Fixtures used by tests."""
         self.Root = Path(__file__).parent
 
-        self.TestWordDocSimpleTablePath = os.path.join(self.Root, 'TestWordDocSimpleTable.docx')
-        self.TestWordDocTableAcrossPagePath = os.path.join(self.Root, 'TestWordDocTableAcrossPage.docx')
-        self.TestWordDocNestedTablePath = os.path.join(self.Root, 'TestWordDocNestedTable.docx')
-        self.TestWordDocThreeTablesPath = os.path.join(self.Root, 'TestWordDocThreeTables.docx')
+        self.TestWordDocSimpleTablePath = os.path.join(self.Root, 'word_docs/TestWordDocSimpleTable.docx')
+        self.TestWordDocTableAcrossPagePath = os.path.join(self.Root, 'word_docs/TestWordDocTableAcrossPage.docx')
+        self.TestWordDocNestedTablePath = os.path.join(self.Root, 'word_docs/TestWordDocNestedTable.docx')
+        self.TestWordDocThreeTablesPath = os.path.join(self.Root, 'word_docs/TestWordDocThreeTables.docx')
         self.TableJsonSimple = '{"Field":{"0":"SimpleId","1":"AField","2":"AnotherField"},"Description":{"0":"Unique ' \
                                'identifier.","1":"Stuff","2":"More stuff"},"Typeofvariable":{"0":"INT","1":"CHAR 30",' \
                                '"2":"CHAR 30"}}'

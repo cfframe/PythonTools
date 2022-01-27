@@ -183,27 +183,27 @@ class ImageToolsTestCase(TestCase):
             has_black_corners = ImageTools.are_image_corners_black(images[i])
             print(f'File {images[i].filename}, black corners? {has_black_corners}')
 
-    def test_NOT_A_TEST(self):
-
-        src_dir = 'C://GitHub//cfframe//spatial-skin-vae//data//isic2018_unclassed//train//unknown'
-        trg_dir = 'C://GitHub//cfframe//PythonTools//tests//temp'
-        FileTools.ensure_empty_directory(trg_dir)
-        image_files = []
-        for root, dirs, files in os.walk(src_dir, topdown=False):
-            image_files = [os.path.join(src_dir, file) for file in files if file.endswith('.jpg')]
-
-        progress_bar = tqdm(total=len(image_files) // 100)
-        i = 0
-        while i * 100 < len(image_files):
-            images = [Image.open(image_path) for image_path
-                      in image_files[i * 100: np.min([(i + 1) * 100, len(image_files)])]]
-            for image in images:
-                if ImageTools.are_image_corners_black(image):
-                    shutil.copyfile(image.filename, image.filename.replace(src_dir, trg_dir))
-
-            i += 1
-            progress_bar.update(1)
-
-        progress_bar.close()
-
-        print('done')
+    # def test_NOT_A_TEST(self):
+    #     # CFF Trial code for capturing images with black corners
+    #     src_dir = 'C://GitHub//cfframe//spatial-skin-vae//data//isic2018_unclassed//train//unknown'
+    #     trg_dir = 'C://GitHub//cfframe//PythonTools//tests//temp'
+    #     FileTools.ensure_empty_directory(trg_dir)
+    #     image_files = []
+    #     for root, dirs, files in os.walk(src_dir, topdown=False):
+    #         image_files = [os.path.join(src_dir, file) for file in files if file.endswith('.jpg')]
+    #
+    #     progress_bar = tqdm(total=len(image_files) // 100)
+    #     i = 0
+    #     while i * 100 < len(image_files):
+    #         images = [Image.open(image_path) for image_path
+    #                   in image_files[i * 100: np.min([(i + 1) * 100, len(image_files)])]]
+    #         for image in images:
+    #             if ImageTools.are_image_corners_black(image):
+    #                 shutil.copyfile(image.filename, image.filename.replace(src_dir, trg_dir))
+    #
+    #         i += 1
+    #         progress_bar.update(1)
+    #
+    #     progress_bar.close()
+    #
+    #     print('done')

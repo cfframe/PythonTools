@@ -1,4 +1,4 @@
-# word_doc_tools_test_case.py
+# test_word_doc_tools.py
 
 import datetime
 import filecmp

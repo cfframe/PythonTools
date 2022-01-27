@@ -1,4 +1,4 @@
-# file_tools_test_case.py
+# test_file_tools.py
 
 import datetime
 import filecmp
@@ -234,21 +234,29 @@ class FileToolsTestCase(unittest.TestCase):
         archive_path = os.path.join(root, actual)
         os.unlink(archive_path)
 
-    def test_save_command_args_to_file__saves_expected_file(self):
+    def test_save_command_args_to_file__saves_expected_content(self):
         args = {'a_boolean': True, 'a_string': 'Some_string', 'a_number': 123}
 
         actual_save_path = os.path.join(self.Root, 'actual_command.txt')
         expected_save_path = os.path.join(self.Root, 'expected_command.txt')
 
-        # Note calls to sys.argv will show the test runner file in unittest, so can't verify the first line correctly.
+        # Calls to save_command_args_to_file saves the calling command in the first line. As such, can't verify the
+        # first line consistently in tests as calling tests via the Terminal saves a different command to calling
+        # them via the IDE - so, compare the content after the first line, not the files themselves.
+
         FileTools.save_command_args_to_file(args, actual_save_path)
         actual_save_path = Path(actual_save_path)
 
         with self.subTest(self, testing_for='saved file exists'):
             self.assertTrue(Path.exists(actual_save_path))
 
+        with open(actual_save_path, 'r') as actual_file:
+            actual_lines = actual_file.readlines()[1:]
+        with open(expected_save_path, 'r') as expected_file:
+            expected_lines = expected_file.readlines()[1:]
+
         with self.subTest(self, testing_for='saves expected content'):
-            self.assertTrue(filecmp.cmp(expected_save_path, actual_save_path))
+            self.assertEqual(expected_lines, actual_lines)
 
         # Clean up
         os.unlink(actual_save_path)

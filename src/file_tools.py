@@ -262,40 +262,86 @@ class FileTools:
 
         return line_list
 
+    # CFF Breaking signature change
+    # @staticmethod
+    # def make_datetime_named_archive(base_name: str, format: str, dir_path_to_archive: str):
+    #     """Make archive, name prefixed with current datetime (yyyymmdd_HHMM_).
+    #     For more detail of each parameter, see definition of shutil.make_archive.
+    #
+    #     Example usage:
+    #
+    #     shutil.make_archive('/home/code/target_file_name', 'zip', '/home/code/', 'base_directory')
+    #
+    #     Keyword arguments:
+    #
+    #     :param base_name: str, the full path of the file to create, including the base name, minus any format-specific
+    #     extension; datetime will be prefixed to the base name
+    #     :param format: str, the archive format
+    #     :param dir_path_to_archive: str, the path to the directory that is to be archived
+    #     :return: name of file
+    #     """
+    #     print('Archiving files...')
+    #     file_name = datetime.datetime.now().strftime('%y%m%d_%H%M_') + Path(base_name).name
+    #     dir_path = Path(base_name).parent
+    #     base_name = os.path.join(dir_path, file_name)
+    #
+    #     root_dir = Path(dir_path_to_archive).parent
+    #     base_dir = Path(dir_path_to_archive).name
+    #     # print('\nmake_archive params etc')
+    #     # print('base_name: {}'.format(base_name))
+    #     # print('root_dir: {}'.format(root_dir))
+    #     # print('base_dir: {}'.format(base_dir))
+    #
+    #     result = shutil.make_archive(base_name, format, root_dir, base_dir)
+    #
+    #     end_file_name = base_name + '.' + format
+    #
+    #     print('Images saved at {}'.format(end_file_name))
+    #
+    #     return result
+    #
     @staticmethod
-    def make_datetime_named_archive(base_name: str, format: str, dir_path_to_archive: str):
-        """Make archive, name prefixed with current datetime (yyyymmdd_HHMM_).
+    def make_datetime_named_archive(src_path_to_archive: str, base_target_path: str,
+                                    format: str = 'zip',
+                                    datestamp: datetime = datetime.datetime.now()):
+        """Make archive, name prefixed with supplied or current datetime (yyyymmdd_HHMM_).
         For more detail of each parameter, see definition of shutil.make_archive.
 
         Example usage:
 
-        shutil.make_archive('/home/code/target_file_name', 'zip', '/home/code/', 'base_directory')
+        shutil.make_archive('/home/code/', '/home/code/target_file_name', 'zip', 'base_directory')
 
         Keyword arguments:
 
-        :param base_name: str, the full path of the file to create, including the base name, minus any format-specific
+        :param src_path_to_archive: str, the path to the directory that is to be archived
+        :param base_target_path: str, the full path of the file to create, including the base name, minus any format-specific
         extension; datetime will be prefixed to the base name
-        :param format: str, the archive format
-        :param dir_path_to_archive: str, the path to the directory that is to be archived
+        :param format: str, the archive format (default: 'zip')
+        :param datestamp: datestamp to add to archive name (default: now())
         :return: name of file
         """
-        print('Archiving files...')
-        file_name = datetime.datetime.now().strftime('%y%m%d_%H%M_') + Path(base_name).name
-        dir_path = Path(base_name).parent
-        base_name = os.path.join(dir_path, file_name)
+        print(f'Archiving {src_path_to_archive} to {format} file ...')
+        if datestamp is None:
+            datestamp = datetime.datetime.now()
 
-        root_dir = Path(dir_path_to_archive).parent
-        base_dir = Path(dir_path_to_archive).name
+        datestamp = datestamp.strftime('%y%m%d_%H%M')
+
+        file_name = f'{datestamp}_{Path(base_target_path).name}'
+        dir_path = Path(base_target_path).parent
+        base_target_path = os.path.join(dir_path, file_name)
+
+        root_dir = Path(src_path_to_archive).parent
+        base_dir = Path(src_path_to_archive).name
         # print('\nmake_archive params etc')
-        # print('base_name: {}'.format(base_name))
+        # print('base_target_path: {}'.format(base_target_path))
         # print('root_dir: {}'.format(root_dir))
         # print('base_dir: {}'.format(base_dir))
 
-        result = shutil.make_archive(base_name, format, root_dir, base_dir)
+        result = shutil.make_archive(base_target_path, format, root_dir, base_dir)
 
-        end_file_name = base_name + '.' + format
+        end_file_name = base_target_path + '.' + format
 
-        print('Images saved at {}'.format(end_file_name))
+        print('Output saved at {}'.format(end_file_name))
 
         return result
 

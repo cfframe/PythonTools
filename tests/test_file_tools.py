@@ -209,7 +209,7 @@ class FileToolsTestCase(unittest.TestCase):
         actual = FileTools.lines_list_from_file(path)
         self.assertListEqual(expected, actual)
 
-    def test_make_datetime_named_archive__returns_file_path_in_desired_format(self):
+    def test_make_datetime_named_archive__default_datestamp__returns_file_path_in_desired_format(self):
         root = self.Root
         sub = 'test_for_archive'
         test_file_name = 'TestFile.txt'
@@ -221,11 +221,42 @@ class FileToolsTestCase(unittest.TestCase):
         shutil.copy(src_file, test_file)
         archive_format = 'zip'
 
-        expected = datetime.datetime.now().strftime('%y%m%d_%H%M_') + sub + '.' + archive_format
+        datestamp = datetime.datetime.now()
+        expected = f'{datestamp.strftime("%y%m%d_%H%M")}_{sub}.{archive_format}'
 
-        actual = Path(FileTools.make_datetime_named_archive(base_name=base_path_of_final_archive_file,
-                                                            format=archive_format,
-                                                            dir_path_to_archive=path_of_dir_to_archive)).name
+        actual = Path(FileTools.make_datetime_named_archive(
+            src_path_to_archive=path_of_dir_to_archive,
+            base_target_path=base_path_of_final_archive_file,
+            format=archive_format)).name
+
+        self.assertTrue(actual == expected)
+
+        # clean up
+
+        archive_path = os.path.join(root, actual)
+        os.unlink(archive_path)
+
+    def test_make_datetime_named_archive__supplied_datestamp__returns_file_path_in_desired_format(self):
+        root = self.Root
+        sub = 'test_for_archive'
+        test_file_name = 'TestFile.txt'
+        base_path_of_final_archive_file = os.path.join(root, sub)
+        path_of_dir_to_archive = os.path.join(root, sub)
+        src_file = os.path.join(root, test_file_name)
+        test_file = os.path.join(base_path_of_final_archive_file, test_file_name)
+        Path(base_path_of_final_archive_file).mkdir(parents=True, exist_ok=True)
+        shutil.copy(src_file, test_file)
+        archive_format = 'zip'
+
+        datestamp = datetime.datetime(2022, 1, 1, 0, 1)
+        expected = f'{datestamp.strftime("%y%m%d_%H%M")}_{sub}.{archive_format}'
+
+        actual = Path(FileTools.make_datetime_named_archive(
+            src_path_to_archive=path_of_dir_to_archive,
+            base_target_path=base_path_of_final_archive_file,
+            format=archive_format,
+            datestamp=datestamp
+        )).name
 
         self.assertTrue(actual == expected)
 

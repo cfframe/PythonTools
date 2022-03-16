@@ -1,12 +1,21 @@
 # plot_helper.py
 # Targeted at training/validation vs epoch data
 
+from enum import IntEnum
 import math
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 import os
+import pandas as pd
 
-from src.result_columns import ResultColumns
+
+class ResultColumns(IntEnum):
+    Epoch = 0
+    TrainLoss = 1
+    TrainAccuracy = 2
+    ValLoss = 3
+    ValAccuracy = 4
 
 
 class PlotHelper:
@@ -62,49 +71,39 @@ class PlotHelper:
         """
 
         legend_location = PlotHelper.legend_location_from_data(train_data)
+        target_path = os.path.join(output_dir, title.replace(' ', '_')+'.svg')
+
+        # Force integer values for x axis.
+        ax = plt.figure().gca()
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         plt.plot(train_data, color='b', label='Training')
         plt.plot(validation_data, color='g', label='Validation')
-        plt.title(title)
+        plt.title = title
         plt.ylabel(y_label)
         plt.xlabel('Epoch')
         plt.legend(['Training', 'Validation'], loc=legend_location)
         plt.grid()
 
-        target_path = os.path.join(output_dir, title.replace(' ', '_')+'.svg')
         # If use plt.show() before saving, then saved figure is blank. Works ok other way round.
         plt.savefig(target_path)
 
         # plt.show()
 
     @staticmethod
-    def basic_run_plot(train_results, val_results, output_dir):
-        train_arr = np.asarray(train_results)
-        val_arr = np.asarray(val_results)
-
-        plt.figure()
+    def basic_run_plot(df: pd.DataFrame, output_dir: str):
         PlotHelper.basic_train_val_plot_and_save(
             # style='seaborn',
-            title='ELBO',
-            y_label='ELBO',
-            train_data=train_arr[:, ResultColumns.ELBO],
-            validation_data=val_arr[:, ResultColumns.ELBO],
+            title='Accuracy',
+            y_label='Accuracy',
+            train_data=df[df.columns[ResultColumns.TrainAccuracy]],
+            validation_data=df[df.columns[ResultColumns.ValAccuracy]],
             output_dir=output_dir)
 
-        plt.figure()
         PlotHelper.basic_train_val_plot_and_save(
             # style='seaborn',
-            title='KL Divergence',
-            y_label='KL Divergence',
-            train_data=train_arr[:, ResultColumns.KL],
-            validation_data=val_arr[:, ResultColumns.KL],
-            output_dir=output_dir)
-
-        plt.figure()
-        PlotHelper.basic_train_val_plot_and_save(
-            # style='seaborn',
-            title='BCE Loss',
-            y_label='BCE Loss',
-            train_data=train_arr[:, ResultColumns.BCE],
-            validation_data=val_arr[:, ResultColumns.BCE],
+            title='Loss',
+            y_label='Loss',
+            train_data=df[df.columns[ResultColumns.TrainLoss]],
+            validation_data=df[df.columns[ResultColumns.ValLoss]],
             output_dir=output_dir)

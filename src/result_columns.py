@@ -1,3 +1,4 @@
+# Old result columns for skin-vae work. Not in current use but kept for future reference.
 from enum import IntEnum
 
 

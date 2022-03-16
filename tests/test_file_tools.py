@@ -281,10 +281,11 @@ class FileToolsTestCase(unittest.TestCase):
         with self.subTest(self, testing_for='saved file exists'):
             self.assertTrue(Path.exists(actual_save_path))
 
+        # Both files have two lines at the start which cannot be compared in all scenarios, so ignore them
         with open(actual_save_path, 'r') as actual_file:
-            actual_lines = actual_file.readlines()[1:]
+            actual_lines = actual_file.readlines()[2:]
         with open(expected_save_path, 'r') as expected_file:
-            expected_lines = expected_file.readlines()[1:]
+            expected_lines = expected_file.readlines()[2:]
 
         with self.subTest(self, testing_for='saves expected content'):
             self.assertEqual(expected_lines, actual_lines)

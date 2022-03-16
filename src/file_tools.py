@@ -355,6 +355,10 @@ class FileTools:
         :param save_path: str, path to file
         :param to_print: bool, flag for printing args
         """
+        datestamp = datetime.datetime.now()
+        datestamp = datestamp.strftime('%y-%m-%d_%H:%M:%S')
+        header_line = f'Saved at {datestamp}'
+
         parts = ['python']
         lines = []
         parts.append(os.path.basename(sys.argv[0]))
@@ -367,6 +371,8 @@ class FileTools:
             lines.append('{}={}'.format(k, v or ''))
 
         lines.insert(0, command_line)
+        lines.insert(0, header_line)
+
         content = '\n'.join(lines)
 
         with open(save_path, 'w', encoding='utf-8') as outfile:

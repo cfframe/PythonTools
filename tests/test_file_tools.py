@@ -1,4 +1,4 @@
-# file_tools_test_case.py
+# test_file_tools.py
 
 import datetime
 import filecmp
@@ -35,16 +35,21 @@ class FileToolsTestCase(unittest.TestCase):
         self.TrainingRawFolder = os.path.join(self.Root, 'training_raw')
         self.ShallowFolder = os.path.join(self.Root, 'test_folder')
         self.DeepFolder = os.path.join(self.ShallowFolder, 'nested')
+        self.DeepSourceFiles = os.path.join(self.Root, 'deep_source_files')
+        self.DeepSourceFilesSuffixed = os.path.join(self.Root, 'deep_source_files_suffixed')
+        self.CollatedFolder = os.path.join(self.Root, 'collated_folder')
         FileTools.ensure_empty_directory(self.NewFolderRoot)
         FileTools.ensure_empty_directory(self.TrainingRawFolder)
         shutil.copytree(self.SourceImagesDir, self.TrainingRawFolder, dirs_exist_ok=True)
         FileTools.ensure_empty_directory(self.DeepFolder)
         shutil.copy(self.TestFilePath, os.path.join(self.DeepFolder, Path(self.TestFilePath).name))
+        FileTools.ensure_empty_directory(self.CollatedFolder)
 
     def tearDown(self) -> None:
         FileTools.ensure_empty_directory(self.NewFolderRoot)
         FileTools.ensure_empty_directory(self.UnclassedParentFolder)
         FileTools.ensure_empty_directory(self.ShallowFolder)
+        FileTools.ensure_empty_directory(self.CollatedFolder)
 
     def test_chunks_generator__yields_expected_lists(self):
         chunk_size = 2
@@ -204,7 +209,7 @@ class FileToolsTestCase(unittest.TestCase):
         actual = FileTools.lines_list_from_file(path)
         self.assertListEqual(expected, actual)
 
-    def test_make_datetime_named_archive__returns_file_path_in_desired_format(self):
+    def test_make_datetime_named_archive__default_datestamp__returns_file_path_in_desired_format(self):
         root = self.Root
         sub = 'test_for_archive'
         test_file_name = 'TestFile.txt'
@@ -216,11 +221,13 @@ class FileToolsTestCase(unittest.TestCase):
         shutil.copy(src_file, test_file)
         archive_format = 'zip'
 
-        expected = datetime.datetime.now().strftime('%y%m%d_%H%M_') + sub + '.' + archive_format
+        datestamp = datetime.datetime.now()
+        expected = f'{datestamp.strftime("%y%m%d_%H%M")}_{sub}.{archive_format}'
 
-        actual = Path(FileTools.make_datetime_named_archive(base_name=base_path_of_final_archive_file,
-                                                            format=archive_format,
-                                                            dir_path_to_archive=path_of_dir_to_archive)).name
+        actual = Path(FileTools.make_datetime_named_archive(
+            src_path_to_archive=path_of_dir_to_archive,
+            base_target_path=base_path_of_final_archive_file,
+            format=archive_format)).name
 
         self.assertTrue(actual == expected)
 
@@ -229,21 +236,58 @@ class FileToolsTestCase(unittest.TestCase):
         archive_path = os.path.join(root, actual)
         os.unlink(archive_path)
 
-    def test_save_command_args_to_file__saves_expected_file(self):
+    def test_make_datetime_named_archive__supplied_datestamp__returns_file_path_in_desired_format(self):
+        root = self.Root
+        sub = 'test_for_archive'
+        test_file_name = 'TestFile.txt'
+        base_path_of_final_archive_file = os.path.join(root, sub)
+        path_of_dir_to_archive = os.path.join(root, sub)
+        src_file = os.path.join(root, test_file_name)
+        test_file = os.path.join(base_path_of_final_archive_file, test_file_name)
+        Path(base_path_of_final_archive_file).mkdir(parents=True, exist_ok=True)
+        shutil.copy(src_file, test_file)
+        archive_format = 'zip'
+
+        datestamp = datetime.datetime(2022, 1, 1, 0, 1)
+        expected = f'{datestamp.strftime("%y%m%d_%H%M")}_{sub}.{archive_format}'
+
+        actual = Path(FileTools.make_datetime_named_archive(
+            src_path_to_archive=path_of_dir_to_archive,
+            base_target_path=base_path_of_final_archive_file,
+            format=archive_format,
+            datestamp=datestamp
+        )).name
+
+        self.assertTrue(actual == expected)
+
+        # clean up
+
+        archive_path = os.path.join(root, actual)
+        os.unlink(archive_path)
+
+    def test_save_command_args_to_file__saves_expected_content(self):
         args = {'a_boolean': True, 'a_string': 'Some_string', 'a_number': 123}
 
         actual_save_path = os.path.join(self.Root, 'actual_command.txt')
         expected_save_path = os.path.join(self.Root, 'expected_command.txt')
 
-        # Note calls to sys.argv will show the test runner file in unittest, so can't verify the first line correctly.
+        # Calls to save_command_args_to_file saves the calling command in the first line. As such, can't verify the
+        # first line consistently in tests as calling tests via the Terminal saves a different command to calling
+        # them via the IDE - so, compare the content after the first line, not the files themselves.
+
         FileTools.save_command_args_to_file(args, actual_save_path)
         actual_save_path = Path(actual_save_path)
 
         with self.subTest(self, testing_for='saved file exists'):
             self.assertTrue(Path.exists(actual_save_path))
 
+        with open(actual_save_path, 'r') as actual_file:
+            actual_lines = actual_file.readlines()[1:]
+        with open(expected_save_path, 'r') as expected_file:
+            expected_lines = expected_file.readlines()[1:]
+
         with self.subTest(self, testing_for='saves expected content'):
-            self.assertTrue(filecmp.cmp(expected_save_path, actual_save_path))
+            self.assertEqual(expected_lines, actual_lines)
 
         # Clean up
         os.unlink(actual_save_path)
@@ -271,7 +315,7 @@ class FileToolsTestCase(unittest.TestCase):
             self.assertTrue(Path.exists(Path(final_images_file_path)))
 
         with self.subTest(self, testing_for='saved file has images'):
-            images = np.load(final_images_file_path)
+            images = np.load(file=final_images_file_path, allow_pickle=True)
             print(images.shape)
 
     def test_path_of_first_file_of_type__when_found__returns_path(self):
@@ -325,6 +369,44 @@ class FileToolsTestCase(unittest.TestCase):
             actual = len(os.listdir(target_dir))
             expected = len(os.listdir(self.SourceImagesDir))
             self.assertTrue(actual == expected)
+
+    def test_collate_files_by_low_level_dir_name(self):
+        source_dir = self.DeepSourceFiles
+        target_dir = self.CollatedFolder
+        source_name = Path(source_dir).name
+        target_name = Path(target_dir).name
+        low_level_dir_name = 'Start'
+        path_parts_re = [[source_name, target_name],
+                         [r'\\Ch\d+', ''],
+                         [r'\\Start\\', r'\\']]
+
+        data = FileTools.collate_files_by_low_level_dir_name(source_dir, low_level_dir_name, path_parts_re)
+
+        # Expected number of files found
+        with self.subTest(self):
+            self.assertTrue(len(data) == 5)
+
+        # Copied file exists
+        with self.subTest(self):
+            self.assertTrue(Path(data[0]['CopyPath']).exists())
+
+    def test_collate_files_by_low_level_dir_name__with_suffix(self):
+        source_dir = self.DeepSourceFilesSuffixed
+        target_dir = self.CollatedFolder
+        source_name = Path(source_dir).name
+        target_name = Path(target_dir).name
+        low_level_dir_name = 'begin'
+        path_parts_re = [[source_name, target_name]]
+
+        data = FileTools.collate_files_by_low_level_dir_name(source_dir, low_level_dir_name, path_parts_re)
+
+        # Expected number of files found
+        with self.subTest(self):
+            self.assertTrue(len(data) == 5)
+
+        # Copied file exists
+        with self.subTest(self):
+            self.assertTrue(Path(data[0]['CopyPath']).exists())
 
 
 if __name__ == '__main__':

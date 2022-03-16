@@ -1,4 +1,4 @@
-# plot_helper_test_case.py
+# test_plot_helper.py
 
 import datetime
 import filecmp

@@ -2,11 +2,12 @@
 
 import datetime
 import numpy as np
-import pandas
+import pandas as pd
 from pathlib import Path
 from PIL import Image
 import os
 import random
+import re
 import shutil
 from skimage.transform import resize
 import sys
@@ -69,7 +70,7 @@ class FileTools:
         :return (dataframe) list of folder names
         """
 
-        df = pandas.read_csv(info_file_path, index_col=0)
+        df = pd.read_csv(info_file_path, index_col=0)
 
         FileTools.create_dirs_from_file_header(info_file_path, separator, target_root)
 
@@ -105,7 +106,7 @@ class FileTools:
     #     :return (dataframe) list of folder names
     #     """
     #
-    #     df = pandas.read_csv(info_file_path, index_col=0)
+    #     df = pd.read_csv(info_file_path, index_col=0)
     #
     #     FileTools.create_dirs_from_file_header(info_file_path, separator, target_major_split_root)
     #     FileTools.create_dirs_from_file_header(info_file_path, separator, target_minor_split_root)
@@ -157,7 +158,7 @@ class FileTools:
         :return (dataframe) list of folder names
         """
 
-        df = pandas.read_csv(info_file_path, index_col=0)
+        df = pd.read_csv(info_file_path, index_col=0)
 
         splits_total = np.sum(splits)
 
@@ -261,40 +262,86 @@ class FileTools:
 
         return line_list
 
+    # CFF Breaking signature change
+    # @staticmethod
+    # def make_datetime_named_archive(base_name: str, format: str, dir_path_to_archive: str):
+    #     """Make archive, name prefixed with current datetime (yyyymmdd_HHMM_).
+    #     For more detail of each parameter, see definition of shutil.make_archive.
+    #
+    #     Example usage:
+    #
+    #     shutil.make_archive('/home/code/target_file_name', 'zip', '/home/code/', 'base_directory')
+    #
+    #     Keyword arguments:
+    #
+    #     :param base_name: str, the full path of the file to create, including the base name, minus any format-specific
+    #     extension; datetime will be prefixed to the base name
+    #     :param format: str, the archive format
+    #     :param dir_path_to_archive: str, the path to the directory that is to be archived
+    #     :return: name of file
+    #     """
+    #     print('Archiving files...')
+    #     file_name = datetime.datetime.now().strftime('%y%m%d_%H%M_') + Path(base_name).name
+    #     dir_path = Path(base_name).parent
+    #     base_name = os.path.join(dir_path, file_name)
+    #
+    #     root_dir = Path(dir_path_to_archive).parent
+    #     base_dir = Path(dir_path_to_archive).name
+    #     # print('\nmake_archive params etc')
+    #     # print('base_name: {}'.format(base_name))
+    #     # print('root_dir: {}'.format(root_dir))
+    #     # print('base_dir: {}'.format(base_dir))
+    #
+    #     result = shutil.make_archive(base_name, format, root_dir, base_dir)
+    #
+    #     end_file_name = base_name + '.' + format
+    #
+    #     print('Images saved at {}'.format(end_file_name))
+    #
+    #     return result
+    #
     @staticmethod
-    def make_datetime_named_archive(base_name: str, format: str, dir_path_to_archive: str):
-        """Make archive, name prefixed with current datetime (yyyymmdd_HHMM_).
+    def make_datetime_named_archive(src_path_to_archive: str, base_target_path: str,
+                                    format: str = 'zip',
+                                    datestamp: datetime = datetime.datetime.now()):
+        """Make archive, name prefixed with supplied or current datetime (yyyymmdd_HHMM_).
         For more detail of each parameter, see definition of shutil.make_archive.
 
         Example usage:
 
-        shutil.make_archive('/home/code/target_file_name', 'zip', '/home/code/', 'base_directory')
+        shutil.make_archive('/home/code/', '/home/code/target_file_name', 'zip', 'base_directory')
 
         Keyword arguments:
 
-        :param base_name: str, the full path of the file to create, including the base name, minus any format-specific
+        :param src_path_to_archive: str, the path to the directory that is to be archived
+        :param base_target_path: str, the full path of the file to create, including the base name, minus any format-specific
         extension; datetime will be prefixed to the base name
-        :param format: str, the archive format
-        :param dir_path_to_archive: str, the path to the directory that is to be archived
+        :param format: str, the archive format (default: 'zip')
+        :param datestamp: datestamp to add to archive name (default: now())
         :return: name of file
         """
-        print('Archiving files...')
-        file_name = datetime.datetime.now().strftime('%y%m%d_%H%M_') + Path(base_name).name
-        dir_path = Path(base_name).parent
-        base_name = os.path.join(dir_path, file_name)
+        print(f'Archiving {src_path_to_archive} to {format} file ...')
+        if datestamp is None:
+            datestamp = datetime.datetime.now()
 
-        root_dir = Path(dir_path_to_archive).parent
-        base_dir = Path(dir_path_to_archive).name
+        datestamp = datestamp.strftime('%y%m%d_%H%M')
+
+        file_name = f'{datestamp}_{Path(base_target_path).name}'
+        dir_path = Path(base_target_path).parent
+        base_target_path = os.path.join(dir_path, file_name)
+
+        root_dir = Path(src_path_to_archive).parent
+        base_dir = Path(src_path_to_archive).name
         # print('\nmake_archive params etc')
-        # print('base_name: {}'.format(base_name))
+        # print('base_target_path: {}'.format(base_target_path))
         # print('root_dir: {}'.format(root_dir))
         # print('base_dir: {}'.format(base_dir))
 
-        result = shutil.make_archive(base_name, format, root_dir, base_dir)
+        result = shutil.make_archive(base_target_path, format, root_dir, base_dir)
 
-        end_file_name = base_name + '.' + format
+        end_file_name = base_target_path + '.' + format
 
-        print('Images saved at {}'.format(end_file_name))
+        print('Output saved at {}'.format(end_file_name))
 
         return result
 
@@ -443,3 +490,47 @@ class FileTools:
                     shutil.copy(os.path.join(source_dir, file), leaf_target_dir)
 
         return leaf_target_dir
+
+    @staticmethod
+    def collate_files_by_low_level_dir_name(source_dir: str, low_level_dir_name: str, path_parts_re: list)\
+            -> np.ndarray:
+        """
+        Collate files within a regular structure but deep structure into an alternative one.
+        Assume source files of interest are in commonly named sub-directories.
+
+        E.g. Copy only those within 'Start' folders (this is the low_level_dir_name)
+        from SourceDir/chXX/XX_NN/Start/filenameXX_NN.ext
+        to TargetDir/XX_NN/filenameXX_NN.ext
+
+        :param source_dir: top level source directory
+        :param low_level_dir_name: lowest level commonly named directory, or common suffix
+        :param path_parts_re: list of common parts of file paths to rename or remove, defined as regular expressions
+        :return: data list of lists [file path, file name, copy path]
+        """
+        path = Path(source_dir)
+
+        file_paths = []
+        file_names = []
+
+        for p in [p for p in path.rglob("*") if p.is_file() and p.parent.name.endswith(low_level_dir_name)]:
+            file_paths.append(str(p))
+            file_names.append(p.name)
+
+        data = np.zeros(len(file_paths), dtype={'names': ('FilePath', 'FileName', 'CopyPath'),
+                                                'formats': ('U256', 'U64', 'U256')})
+
+        copy_paths = [str(fp) for fp in file_paths]
+
+        for part in path_parts_re:
+            copy_paths = [re.sub(part[0], part[1], fp) for fp in copy_paths]
+
+        data['FilePath'] = file_paths
+        data['FileName'] = file_names
+        data['CopyPath'] = copy_paths
+
+        for item in data:
+            Path(Path(item['CopyPath']).parent).mkdir(parents=True, exist_ok=True)
+            shutil.copy(item['FilePath'], item['CopyPath'])
+            print(f'Copy {item["FileName"]} from {Path(item["FilePath"]).parent} to {Path(item["CopyPath"]).parent}')
+
+        return data

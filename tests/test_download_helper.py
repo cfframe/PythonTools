@@ -1,4 +1,4 @@
-# download_helper_test_case.py
+# test_download_helper.py
 
 import os
 import shutil

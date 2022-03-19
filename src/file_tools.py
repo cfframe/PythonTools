@@ -502,3 +502,46 @@ class FileTools:
             print(f'Copy {item["FileName"]} from {Path(item["FilePath"]).parent} to {Path(item["CopyPath"]).parent}')
 
         return data
+
+    @staticmethod
+    def df_from_excel_workbook(src_path: str, sheet_exceptions: list) -> pd.DataFrame:
+        """
+        Extract worksheet data from an Excel workbook into a single pandas DataFrame
+
+        :param src_path: path to source Excel workbook
+        :param sheet_exceptions: worksheets to exclude from output
+                                  """
+        # read file
+        wb = pd.ExcelFile(src_path)
+
+        # remove unwanted sheets
+        df_sheets = pd.read_excel(wb, sheet_name=None)
+        for sheet in sheet_exceptions:
+            df_sheets.pop(sheet, None)
+
+        # add new Source column to each sheet, with name of source worksheet
+        for k, v in df_sheets.items():
+            v.insert(0, 'Source', k)
+
+        df = pd.concat(df_sheets)
+        df.reset_index(inplace=True, drop=True)
+
+        return df
+
+    @staticmethod
+    def df_list_from_excel_workbook(src_path: str, sheet_exceptions: list) -> list:
+        """
+        Extract list of pandas DataFrames from an Excel workbook
+
+        :param src_path: path to source Excel workbook
+        :param sheet_exceptions: worksheets to exclude from output
+        """
+        # read file
+        wb = pd.ExcelFile(src_path)
+
+        # remove unwanted sheets
+        df_sheets = pd.read_excel(wb, sheet_name=None)
+        for sheet in sheet_exceptions:
+            df_sheets.pop(sheet, None)
+
+        return df_sheets

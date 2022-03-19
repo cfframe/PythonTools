@@ -24,6 +24,7 @@ class FileToolsTestCase(unittest.TestCase):
         self.Root = Path(__file__).parent
 
         self.TestFilePath = os.path.join(self.Root, 'TestFile.txt')
+        self.TestExcelWorkbookPath = os.path.join(self.Root, 'TestExcelWorkbook.xlsx')
         # self.TestList = ['124.115.0.158', '119.230.103.254', '208.70.189.142']
         self.TestList = ['fred', 'woz', 'ere']
         self.ClassedFileListFile = os.path.join(self.Root, 'ClassedFileList.csv')
@@ -408,6 +409,20 @@ class FileToolsTestCase(unittest.TestCase):
         # Copied file exists
         with self.subTest(self):
             self.assertTrue(Path(data[0]['CopyPath']).exists())
+
+    def test_df_from_excel_workbook(self):
+        df = FileTools.df_from_excel_workbook(self.TestExcelWorkbookPath, ['SheetToIgnore'])
+        with self.subTest(self, testing_for='Number of rows'):
+            actual = len(df)
+            expected = 12
+            self.assertTrue(actual == expected)
+
+    def test_df_list_from_excel_workbook(self):
+        df = FileTools.df_list_from_excel_workbook(self.TestExcelWorkbookPath, ['SheetToIgnore'])
+        with self.subTest(self, testing_for='Number of DataFrames'):
+            actual = len(df)
+            expected = 3
+            self.assertTrue(actual == expected)
 
 
 if __name__ == '__main__':

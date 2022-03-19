@@ -63,6 +63,7 @@ class DownloadHelperTestCase(unittest.TestCase):
         # Not testing user input route - would need to fake it
         with self.subTest(self):
             # Start with empty test dir
+            print(f'unzip_dir: {test_path}')
             self.assertTrue(DownloadHelper.can_extract_to_extraction_dir(unzip_dir=test_path,
                                                                          replace_content=False))
             self.assertTrue(DownloadHelper.can_extract_to_extraction_dir(unzip_dir=test_path,

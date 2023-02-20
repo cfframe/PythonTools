@@ -11,9 +11,13 @@ Coded with python 3.8.10 in PyCharm.
 ## PyCharm set up (optional)
 Create a virtual environment that uses python 3.8 (or your fave flavour).
 
-Open a new Terminal window within PyCharm, verify it's using the new virtual environment.
+Open a new Terminal window within PyCharm, verify it's using the new virtual environment. May need to manually do this eg:
 
-Install module from the requirements file:
+```commandline
+venv/scripts/activate.ps1
+```
+
+Install modules from the requirements file:
 ```
 python -m pip install -r requirements.txt
 ```

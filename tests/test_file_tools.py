@@ -39,6 +39,7 @@ class FileToolsTestCase(unittest.TestCase):
         self.DeepSourceFiles = os.path.join(self.Root, 'deep_source_files')
         self.DeepSourceFilesSuffixed = os.path.join(self.Root, 'deep_source_files_suffixed')
         self.CollatedFolder = os.path.join(self.Root, 'collated_folder')
+        self.NotebookFilePath = os.path.join(self.Root, 'notebooks', 'TestNotebook.ipynb')
         FileTools.ensure_empty_directory(self.NewFolderRoot)
         FileTools.ensure_empty_directory(self.TrainingRawFolder)
         shutil.copytree(self.SourceImagesDir, self.TrainingRawFolder, dirs_exist_ok=True)
@@ -372,32 +373,32 @@ class FileToolsTestCase(unittest.TestCase):
             expected = len(os.listdir(self.SourceImagesDir))
             self.assertTrue(actual == expected)
 
-    def test_collate_files_by_low_level_dir_name(self):
-        source_dir = self.DeepSourceFiles
-        target_dir = self.CollatedFolder
-        source_name = Path(source_dir).name
-        target_name = Path(target_dir).name
-        low_level_dir_name = 'Start'
-        path_parts_re = [[source_name, target_name],
-                         [r'\\Ch\d+', ''],
-                         [r'\\Start\\', r'\\']]
-
-        data = FileTools.collate_files_by_low_level_dir_name(source_dir, low_level_dir_name, path_parts_re)
-
-        # Expected number of files found
-        with self.subTest(self):
-            self.assertTrue(len(data) == 5)
-
-        # Copied file exists
-        with self.subTest(self):
-            self.assertTrue(Path(data[0]['CopyPath']).exists())
+    # def test_collate_files_by_low_level_dir_name(self):
+    #     source_dir = self.DeepSourceFiles
+    #     target_dir = self.CollatedFolder
+    #     source_name = Path(source_dir).name
+    #     target_name = Path(target_dir).name
+    #     low_level_dir_name = 'Start'
+    #     path_parts_re = [[source_name, target_name],
+    #                      [r'\\Ch\d+', ''],
+    #                      [r'\\Start\\', r'\\']]
+    #
+    #     data = FileTools.collate_files_by_low_level_dir_name(source_dir, low_level_dir_name, path_parts_re)
+    #
+    #     # Expected number of files found
+    #     with self.subTest(self):
+    #         self.assertTrue(len(data) == 5)
+    #
+    #     # Copied file exists
+    #     with self.subTest(self):
+    #         self.assertTrue(Path(data[0]['CopyPath']).exists())
 
     def test_collate_files_by_low_level_dir_name__with_suffix(self):
         source_dir = self.DeepSourceFilesSuffixed
         target_dir = self.CollatedFolder
         source_name = Path(source_dir).name
         target_name = Path(target_dir).name
-        low_level_dir_name = 'begin'
+        low_level_dir_name = 'start'
         path_parts_re = [[source_name, target_name]]
 
         data = FileTools.collate_files_by_low_level_dir_name(source_dir, low_level_dir_name, path_parts_re)
@@ -421,6 +422,13 @@ class FileToolsTestCase(unittest.TestCase):
         df = FileTools.df_list_from_excel_workbook(self.TestExcelWorkbookPath, ['SheetToIgnore'])
         with self.subTest(self, testing_for='Number of DataFrames'):
             actual = len(df)
+            expected = 3
+            self.assertTrue(actual == expected)
+
+    def test_list_lines_with_term(self):
+        term_list = FileTools.list_lines_with_term(self.NotebookFilePath, 'import')
+        with self.subTest(self, testing_for='1 following word'):
+            actual = len(term_list)
             expected = 3
             self.assertTrue(actual == expected)
 

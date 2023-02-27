@@ -1,6 +1,8 @@
 # file_tools.py
 
 import datetime
+import string
+
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -480,7 +482,9 @@ class FileTools:
         file_paths = []
         file_names = []
 
-        for p in [p for p in path.rglob("*") if p.is_file() and p.parent.name.endswith(low_level_dir_name)]:
+        # for p in [p for p in path.rglob("*") if p.is_file() and p.parent.name.lower().endswith(low_level_dir_name.lower())]:
+        for p in [p for p in path.rglob("*") if
+                  p.is_file() and p.parent.name.lower().endswith(low_level_dir_name.lower())]:
             file_paths.append(str(p))
             file_names.append(p.name)
 
@@ -489,8 +493,9 @@ class FileTools:
 
         copy_paths = [str(fp) for fp in file_paths]
 
-        for part in path_parts_re:
-            copy_paths = [re.sub(part[0], part[1], fp) for fp in copy_paths]
+        copy_paths = [Path(Path(source_dir).parent, path_parts_re[0][1], fn) for fn in file_names]
+        # for part in path_parts_re:
+        #     copy_paths = [re.sub(part[0], part[1], fp) for fp in copy_paths]
 
         data['FilePath'] = file_paths
         data['FileName'] = file_names
@@ -545,3 +550,33 @@ class FileTools:
             df_sheets.pop(sheet, None)
 
         return df_sheets
+
+    @staticmethod
+    def list_lines_with_term(file_path: str, term: str) -> list:
+        """
+        Extract list of lines containing a given term instance from a file
+
+        Assumptions:
+        - the words following the term are in the same line of text, where new
+        lines are delineated with some newline character such as carriage return or linefeed
+        - words are space-separated
+
+        Args:
+            file_path: path to file
+            term: term to search for
+
+        Returns: list of found instances
+        """
+
+        found_list = []
+        infile = open(file_path, 'r')
+        line = infile.readline()
+        while line:
+            position = line.find(term)
+
+            if position > -1:
+                found_list.append(line.replace('\n', ''))
+            line = infile.readline()
+        infile.close()
+
+        return found_list

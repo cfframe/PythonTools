@@ -575,7 +575,10 @@ class FileTools:
             position = line.find(term)
 
             if position > -1:
-                found_list.append(line.replace('\n', ''))
+                line = line.replace('\n', '').replace('\\n', '')
+                for c in string.punctuation:
+                    line = line.replace(c, '').strip()
+                found_list.append(line)
             line = infile.readline()
         infile.close()
 

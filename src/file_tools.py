@@ -552,7 +552,7 @@ class FileTools:
         return df_sheets
 
     @staticmethod
-    def list_lines_with_term(file_path: str, term: str) -> list:
+    def list_lines_with_term(file_path: str, term: str, exceptions: str = '') -> list:
         """
         Extract list of lines containing a given term instance from a file
 
@@ -564,9 +564,11 @@ class FileTools:
         Args:
             file_path: path to file
             term: term to search for
+            exceptions: characters to retain
 
         Returns: list of found instances
         """
+        punctuation = [c for c in string.punctuation if c not in exceptions]
 
         found_list = []
         infile = open(file_path, 'r')
@@ -575,7 +577,10 @@ class FileTools:
             position = line.find(term)
 
             if position > -1:
-                found_list.append(line.replace('\n', ''))
+                line = line.replace('\n', '').replace('\\n', '')
+                for c in punctuation:
+                    line = line.replace(c, ' ').strip()
+                found_list.append(line)
             line = infile.readline()
         infile.close()
 

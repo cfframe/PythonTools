@@ -426,11 +426,19 @@ class FileToolsTestCase(unittest.TestCase):
             self.assertTrue(actual == expected)
 
     def test_list_lines_with_term(self):
-        term_list = FileTools.list_lines_with_term(self.NotebookFilePath, 'import')
-        with self.subTest(self, testing_for='1 following word'):
+
+        with self.subTest(self, testing_for='basic test'):
+            term_list = FileTools.list_lines_with_term(self.NotebookFilePath, 'import')
             actual = len(term_list)
             expected = 3
             self.assertTrue(actual == expected)
+
+        with self.subTest(self, testing_for='exceptions'):
+            except_hash = '#'
+            term_list = FileTools.list_lines_with_term(self.NotebookFilePath, 'import', except_hash)
+            expected = (except_hash in term_list[0])
+
+            self.assertTrue(expected)
 
 
 if __name__ == '__main__':

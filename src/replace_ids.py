@@ -10,7 +10,8 @@ def process_json_files(input_folder: str) -> None:
 
     # Regex to match: "id": "some-uuid"
     id_pattern = re.compile(
-        r'("id"\s*:\s*")[^"]+(")'
+        # r'("id"\s*:\s*")[^"]+(")'
+        r'("(?:id|versionId|instanceId)"\s*:\s*")[^"]+(")'
     )
 
     for filename in os.listdir(input_folder):
